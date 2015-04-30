@@ -14,7 +14,7 @@ class Nvmish < Formula
     bin.install 'nvmish'
     (bin+'nvmish').chmod 0755
 
-    ohai <<-EOF
+    ohai <<-'EOF'
 
       To run nvmish automatically when changing directories:
 
