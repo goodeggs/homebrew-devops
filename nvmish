@@ -10,7 +10,7 @@
 # 1 No package.json in current directory
 # 2 Found package.json but no engines specified
 
-. $NVM_DIR/nvm.sh
+source $(brew --prefix nvm)/nvm.sh
 
 function nvmish() {
   if [[ ! -f package.json ]] ; then
@@ -30,8 +30,9 @@ function nvmish() {
       IOJS_VERSION=$(curl --silent --get --data-urlencode "range=${IOJS_VERSION}" https://semver.herokuapp.com/iojs/resolve)
     fi
     NVM_VERSION="iojs-v$IOJS_VERSION"
-    NVM_VERSION_DIR="$NVM_DIR/$NVM_VERSION"
-    if [ ! -d "$NVM_VERSION_DIR" ]; then
+    NVM_NEW_VERSION_DIR="$NVM_DIR/versions/iojs/$NVM_VERSION"
+    NVM_OLD_VERSION_DIR="$NVM_DIR/$NVM_VERSION"
+    if [ ! -d "$NVM_OLD_VERSION_DIR" -a ! -d "$NVM_NEW_VERSION_DIR" ]; then
       echo "Installing io.js v$IOJS_VERSION ..."
       nvm install $NVM_VERSION
     else
@@ -46,8 +47,9 @@ function nvmish() {
       NODE_VERSION=$(curl --silent --get --data-urlencode "range=${NODE_VERSION}" https://semver.herokuapp.com/node/resolve)
     fi
     NVM_VERSION="v$NODE_VERSION"
-    NVM_VERSION_DIR="$NVM_DIR/$NVM_VERSION"
-    if [ ! -d "$NVM_VERSION_DIR" ]; then
+    NVM_NEW_VERSION_DIR="$NVM_DIR/versions/node/$NVM_VERSION"
+    NVM_OLD_VERSION_DIR="$NVM_DIR/$NVM_VERSION"
+    if [ ! -d "$NVM_OLD_VERSION_DIR" -a ! -d "$NVM_NEW_VERSION_DIR" ]; then
       echo "Installing node v$NODE_VERSION ..."
       nvm install $NVM_VERSION
     else
