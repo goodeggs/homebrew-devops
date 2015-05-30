@@ -57,9 +57,9 @@ function nvmish() {
     fi
     return $?
   fi
-  
-  echo "No engines.iojs or engine.node in package.json"
-  return 2
+
+  nvm use default
+  return 0
 }
 
 nvmish $1
