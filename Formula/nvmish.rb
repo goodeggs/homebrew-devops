@@ -3,14 +3,16 @@ require 'formula'
 class Nvmish < Formula
   homepage 'https://github.com/goodeggs/homebrew-delivery-eng/'
   url 'https://github.com/goodeggs/homebrew-delivery-eng.git'
-  version '3.0.1'
+  version '3.0.2'
 
   depends_on 'jq'
   depends_on 'nvm'
 
   def install
     prefix.install 'nvmish.sh'
-    prefix/'vendor'.install Dir['vendor/bash_zsh_support']
+
+    vendor = prefix/'vendor'
+    vendor.install Dir['vendor/bash_zsh_support']
   end
 
   def test
