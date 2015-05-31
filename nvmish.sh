@@ -62,7 +62,7 @@ function nvmish() {
 
 
 # This whole chpwd support business was lovingly borrowed from rvm.
-__dirname=$(dirname $0)
+__dirname=$(brew --prefix nvmish)
 
 source $__dirname/vendor/bash_zsh_support/chpwd/function.sh
 source $__dirname/vendor/bash_zsh_support/chpwd/load.sh
