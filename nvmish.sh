@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 # adapted from https://gist.github.com/assaf/ee377a186371e2e269a7
 # requires nvm and jq
 
@@ -61,6 +59,4 @@ function nvmish() {
   nvm use default
   return 0
 }
-
-nvmish $1
 
