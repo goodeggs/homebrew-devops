@@ -1,0 +1,125 @@
+#!/bin/bash
+set -e
+#set -x
+
+function usage() {
+  echo "mongo connect <cluster> [opts...]"
+  echo "mongo browse <cluster>"
+  echo "mongo createUser <cluster> <db> <user>"
+  echo "mongo dropUser <cluster>"
+  echo "mongo restore <cluster> <db> [opts...]"
+  echo "mongo dsn <cluster> <db> <user>"
+  echo "mongo bootstrap <cluster>"
+  exit 1
+}
+
+function mongoOpts() {
+  json=$( vault read -format=json secret/mongo/$1 )
+  replicaset=$( echo $json | jq -r '.data.replicaset' )
+  seeds=$( echo $json | jq -r '.data.seeds' )
+  ssl=$( echo $json | jq -r 'if .data.ssl then "--ssl --sslAllowInvalidCertificates" else "" end' )
+
+  json=$( vault read -format=json secret/mongo/$1/admin/devops )
+  user=$( echo $json | jq -r '.data.user' )
+  pass=$( echo $json | jq -r '.data.pass' )
+
+  echo "--authenticationDatabase admin -u $user -p $pass --host $replicaset/$seeds $ssl"
+}
+
+function mkpass() {
+  cat /dev/urandom |dd bs=1 count=64 2>/dev/null | base64 |tr + - |tr / _ | head -c30
+}
+
+function mongoDsn() {
+  cluster=$1
+  db=$2
+  user=$3
+
+  json=$( vault read -format=json secret/mongo/$cluster )
+  replicaset=$( echo $json | jq -r '.data.replicaset' )
+  seeds=$( echo $json | jq -r '.data.seeds' )
+  ssl=$( echo $json | jq -r 'if .data.ssl then "&ssl=true" else "" end' )
+
+  json=$( vault read -format=json secret/mongo/$cluster/$db/$user )
+  user=$( echo $json | jq -r '.data.user' )
+  pass=$( echo $json | jq -r '.data.pass' )
+
+  echo "mongodb://$user:$pass@$seeds/$db?replicaSet=${replicaset}${ssl}"
+}
+
+subcommand="$1"
+shift || usage
+
+case $subcommand in
+  mongo)
+    subsubcommand="$1"
+    shift || usage
+    case $subsubcommand in
+      bootstrap)
+        cluster=$1 && shift || usage
+        echo "create a user called 'devops' on the admin database."
+        read -ep "provider [mongolab]: " provider
+        [ "$provider" == "" ] && provider="mongolab"
+        read -ep "devops password: " pass
+        read -ep "seeds: " seeds
+        read -ep "replicaset: " replicaset
+        read -ep "ssl true/false [true]: " ssl
+        [ "$ssl" == "" ] && ssl="true"
+        vault_key="secret/mongo/$cluster"
+        vault write $vault_key provider=$provider seeds=$seeds replicaset=$replicaset ssl=$ssl
+        vault_key="secret/mongo/$cluster/admin/devops"
+        vault write $vault_key user=devops pass=$pass
+        ;;
+        
+      createUser)
+        cluster=$1 && shift || usage
+        db=$1 && shift || usage
+        user=$1 && shift || usage
+        pass=$(mkpass)
+        echo creating user $user with password $pass on db $db
+        mongo $(mongoOpts $cluster) --eval "db.createUser({user: \"$user\", pwd: \"$pass\", roles: [\"readWrite\"]})" $db
+        vault_key="secret/mongo/$cluster/$db/$user"
+        vault write $vault_key user=$user pass=$pass
+        mongoDsn $cluster $db $user
+        ;;
+
+      dropUser)
+        cluster=$1 && shift || usage
+        db=$1 && shift || usage
+        user=$1 && shift || usage
+        echo deleting user $user on db $db
+        mongo $(mongoOpts $cluster) --eval "db.dropUser(\"$user\")" $db
+        ;;
+
+      connect)
+        cluster=$1 && shift || usage
+        mongo $(mongoOpts $cluster) "$@"
+        ;;
+
+      browse)
+        cluster=$1 && shift || usage
+        replicaset=$( vault read -format=json secret/mongo/$cluster/admin/devops | jq -r ".data.replicaset" )
+        open "https://mongolab.com/clusters/$replicaset"
+        ;;
+
+      restore)
+        cluster=$1 && shift || usage
+        db=$1 && shift || usage
+        mongorestore $(mongoOpts $cluster) -d $db "$@"
+        ;;
+
+      dsn)
+        cluster=$1 && shift || usage
+        db=$1 && shift || usage
+        user=$1 && shift || usage
+        mongoDsn $cluster $db $user
+        ;;
+
+      *)
+        usage
+    esac
+    ;;
+  *)
+    usage
+    ;;
+esac
