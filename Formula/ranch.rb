@@ -1,8 +1,8 @@
 class Ranch < Formula
   desc "Ranch Platform CLI"
   homepage "https://github.com/goodeggs/platform/tree/master/cmd/ranch"
-  url "https://github.com/goodeggs/platform/archive/v1.0.0.tar.gz"
-  sha256 "dfd69f46e2b5e1e6d6fba930cc69d91d7f434393df4fec02e3da12dd89d5dd4c"
+  url "https://github.com/goodeggs/platform/archive/v1.0.1.tar.gz"
+  sha256 "1823305347114129f241d06f4a2b2abcde71e4079475c7abf6bb0d3a8c0edf4d"
 
   depends_on "go" => :build
 
