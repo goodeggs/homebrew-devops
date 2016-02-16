@@ -1,21 +1,11 @@
 class Ranch < Formula
   desc "Ranch Platform CLI"
   homepage "https://github.com/goodeggs/platform/tree/master/cmd/ranch"
-  url "https://github.com/goodeggs/platform/archive/v1.0.2.tar.gz"
-  sha256 "1bb3db5f4cd8a8bff2639ce58dfdface37ba1eec21c2f17f3163533634a7bdd8"
-
-  depends_on "go" => :build
+  url "https://github.com/goodeggs/platform/releases/download/v1.0.2/ranch-osx-1.0.2.tar.gz"
+  sha256 "dd7af6a6102c9c56d6235b2dd238cf6695d5ec572d5e2fcbe18606443b465607"
 
   def install
-    ENV["GOPATH"] = buildpath
-
-    path = buildpath/"src/github.com/goodeggs/platform"
-    path.install Dir["*"]
-
-    cd path/"cmd/ranch" do
-      system "go", "build"
-      bin.install "ranch"
-    end
+    bin.install "ranch"
   end
 
   test do
