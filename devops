@@ -98,8 +98,8 @@ case $subcommand in
 
       browse)
         cluster=$1 && shift || usage
-        replicaset=$( vault read -format=json secret/mongo/$cluster/admin/devops | jq -r ".data.replicaset" )
-        open "https://mongolab.com/clusters/$replicaset"
+        replicaset=$( vault read -format=json secret/mongo/$cluster | jq -r ".data.replicaset" )
+        open "https://mlab.com/clusters/$replicaset"
         ;;
 
       restore)
