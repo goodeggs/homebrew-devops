@@ -1,12 +1,56 @@
 # adapted from https://gist.github.com/assaf/ee377a186371e2e269a7
 # requires nvm and jq
 
-# Install io.js/Node version specified in package.json
+# Install nodejs/npm version specified in package.json
 #
 # Exit code:
-# 0 Successfully installed and using latest version
+# 0 Successfully installed and using the desired version
 # 1 No package.json in current directory
-# 2 Found package.json but no engines specified
+
+function __nvmish_needs_resolution() {
+  local semver=$1
+  if ! [[ "$semver" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+function __nvmish_install_nodejs() {
+  local version="$1"
+
+  if __nvmish_needs_resolution "$version"; then
+    version=$(curl --silent --get --retry 5 --retry-max-time 15 --data-urlencode "range=${version}" https://semver.io/node/resolve)
+  fi
+  local nvm_version="v$version"
+  local nvm_new_version_dir="$NVM_DIR/versions/node/$nvm_version"
+  local nvm_old_version_dir="$NVM_DIR/$nvm_version"
+  if [[ ! -d "$nvm_old_version_dir" && ! -d "$nvm_new_version_dir" ]]; then
+    echo "Installing node v$version ..."
+    nvm install $nvm_version
+  else
+    nvm use $nvm_version
+  fi
+  return $?
+}
+
+function __nvmish_install_npm() {
+  local version="$1"
+
+  if __nvmish_needs_resolution "$version"; then
+    version=$(curl --silent --get --retry 5 --retry-max-time 15 --data-urlencode "range=${version}" https://semver.io/npm/resolve)
+  fi
+
+  local current_version=$(npm --version)
+
+  if [[ "$current_version" == "$version" ]]; then
+    echo "npm $current_version already installed"
+  else
+    echo "Downloading and installing npm $version (replacing version $current_version)..."
+    npm install --unsafe-perm --quiet -g npm@$version 2>&1 >/dev/null
+  fi
+  return $?
+}
 
 function nvmish() {
   if [[ ! -f package.json ]] ; then
@@ -17,44 +61,17 @@ function nvmish() {
       return 0
     fi
   fi
-  
-  local INSTALL_VERSION
-  local NVM_VERSION_DIR
-  local IOJS_VERSION=$(cat package.json | jq --raw-output .engines.iojs)
-  if [[ "$IOJS_VERSION" != "null" ]] ; then
-    if ! [[ "$IOJS_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-      IOJS_VERSION=$(curl --silent --get --data-urlencode "range=${IOJS_VERSION}" https://semver.herokuapp.com/iojs/resolve)
-    fi
-    NVM_VERSION="iojs-v$IOJS_VERSION"
-    NVM_NEW_VERSION_DIR="$NVM_DIR/versions/iojs/$NVM_VERSION"
-    NVM_OLD_VERSION_DIR="$NVM_DIR/$NVM_VERSION"
-    if [ ! -d "$NVM_OLD_VERSION_DIR" -a ! -d "$NVM_NEW_VERSION_DIR" ]; then
-      echo "Installing io.js v$IOJS_VERSION ..."
-      nvm install $NVM_VERSION
-    else
-      nvm use $NVM_VERSION
-    fi
-    return $?
-  fi
-  
-  local NODE_VERSION=$(cat package.json | jq --raw-output .engines.node)
-  if [[ "$NODE_VERSION" != "null" ]] ; then
-    if ! [[ "$NODE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-      NODE_VERSION=$(curl --silent --get --data-urlencode "range=${NODE_VERSION}" https://semver.herokuapp.com/node/resolve)
-    fi
-    NVM_VERSION="v$NODE_VERSION"
-    NVM_NEW_VERSION_DIR="$NVM_DIR/versions/node/$NVM_VERSION"
-    NVM_OLD_VERSION_DIR="$NVM_DIR/$NVM_VERSION"
-    if [ ! -d "$NVM_OLD_VERSION_DIR" -a ! -d "$NVM_NEW_VERSION_DIR" ]; then
-      echo "Installing node v$NODE_VERSION ..."
-      nvm install $NVM_VERSION
-    else
-      nvm use $NVM_VERSION
-    fi
-    return $?
-  fi
 
-  nvm use default
+  local blessed_nodejs_version=4
+  local desired_nodejs_version=$(cat package.json | jq --raw-output .engines.node)
+  [[ "$desired_nodejs_version" == "null" ]] && desired_nodejs_version="$blessed_nodejs_version"
+  __nvmish_install_nodejs "$desired_nodejs_version" || return $?
+
+  local blessed_npm_version=3.9
+  local desired_npm_version=$(cat package.json | jq --raw-output .engines.npm)
+  [[ "$desired_npm_version" == "null" ]] && desired_npm_version="$blessed_npm_version"
+  __nvmish_install_npm "$desired_npm_version" || return $?
+
   return 0
 }
 
