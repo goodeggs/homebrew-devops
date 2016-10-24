@@ -12,8 +12,13 @@
 function load_nvm_once() {
   local NVM_SOURCED=$(command -v 'nvm')
   if [[ -z "$NVM_SOURCED" ]]; then
-    echo 'Sourcing NVM'
-    source $(brew --prefix nvm)/nvm.sh
+    if [[ -z "$NVM_DIR" ]]; then
+      echo 'Unable to lazy load nvm because envvar $NVM_DIR not set'
+      exit 1
+    else
+      echo 'Sourcing NVM'
+      source "$NVM_DIR/nvm.sh"
+    fi
   fi
 }
 
