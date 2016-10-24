@@ -8,7 +8,14 @@
 # 1 No package.json in current directory
 # 2 Found package.json but no engines specified
 
-source $(brew --prefix nvm)/nvm.sh
+# Only source nvm if its not already loaded
+function load_nvm_once() {
+  local NVM_SOURCED=$(command -v 'nvm')
+  if [[ -z "$NVM_SOURCED" ]]; then
+    echo 'Sourcing NVM'
+    source $(brew --prefix nvm)/nvm.sh
+  fi
+}
 
 function nvmish() {
   if [[ ! -f package.json ]] ; then
@@ -24,6 +31,7 @@ function nvmish() {
   local NVM_VERSION_DIR
   local IOJS_VERSION=$(cat package.json | jq --raw-output .engines.iojs)
   if [[ "$IOJS_VERSION" != "null" ]] ; then
+    load_nvm_once
     if ! [[ "$IOJS_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
       IOJS_VERSION=$(curl --silent --get --data-urlencode "range=${IOJS_VERSION}" https://semver.herokuapp.com/iojs/resolve)
     fi
@@ -41,6 +49,7 @@ function nvmish() {
   
   local NODE_VERSION=$(cat package.json | jq --raw-output .engines.node)
   if [[ "$NODE_VERSION" != "null" ]] ; then
+    load_nvm_once
     if ! [[ "$NODE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
       NODE_VERSION=$(curl --silent --get --data-urlencode "range=${NODE_VERSION}" https://semver.herokuapp.com/node/resolve)
     fi
