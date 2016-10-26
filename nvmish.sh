@@ -8,8 +8,6 @@
 # 1 No package.json in current directory
 # 2 Found package.json but no engines specified
 
-source $(brew --prefix nvm)/nvm.sh
-
 function nvmish() {
   if [[ ! -f package.json ]] ; then
     if [[ "$1" != "chpwd" ]] ; then
