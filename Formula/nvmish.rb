@@ -6,7 +6,6 @@ class Nvmish < Formula
   version '3.0.4'
 
   depends_on 'jq'
-  depends_on 'nvm'
 
   def install
     prefix.install 'nvmish.sh'
@@ -22,8 +21,10 @@ class Nvmish < Formula
 
   def caveats
     <<-EOS.undent
-      You need to add these lines to your .zshrc / .bash_profile / etc:
+      nvmish depends on nvm, but it is up to you to install it:
+          https://github.com/creationix/nvm/blob/master/README.markdown#install-script
 
+      You need to add this line to your .zshrc / .bash_profile / etc:
           source $(brew --prefix nvmish)/nvmish.sh
 
     EOS
