@@ -75,17 +75,7 @@ function nvmish() {
   return 0
 }
 
-
-# This whole chpwd support business was lovingly borrowed from rvm.
-__dirname=$(brew --prefix nvmish)
-
-source $__dirname/vendor/bash_zsh_support/chpwd/function.sh
-source $__dirname/vendor/bash_zsh_support/chpwd/load.sh
-
-function __nvmish() {
-  nvmish "chpwd"
+function cd() {
+  builtin cd "$@"
+  nvmish
 }
-
-[[ " ${chpwd_functions[*]} " == *" __nvmish "* ]] ||
-  chpwd_functions=( "${chpwd_functions[@]}" __nvmish )
-
