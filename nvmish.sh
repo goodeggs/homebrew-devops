@@ -62,7 +62,7 @@ function nvmish() {
     fi
   fi
 
-  local blessed_nodejs_version=4
+  local blessed_nodejs_version=6
   local desired_nodejs_version=$(cat package.json | jq --raw-output .engines.node)
   [[ "$desired_nodejs_version" == "null" ]] && desired_nodejs_version="$blessed_nodejs_version"
   __nvmish_install_nodejs "$desired_nodejs_version" || return $?
