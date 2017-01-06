@@ -3,7 +3,7 @@ require 'formula'
 class Nvmish < Formula
   homepage 'https://github.com/goodeggs/homebrew-delivery-eng/'
   url 'https://github.com/goodeggs/homebrew-delivery-eng.git'
-  version '4.1.0'
+  version '5.0.0'
 
   depends_on 'jq'
 
