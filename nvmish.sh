@@ -55,8 +55,8 @@ function __nvmish_install_npm() {
 }
 
 function nvmish_debug () {
-  if [[ "${DEBUG:-}" == "nvmish" ]] ; then
-    echo "DEBUG: ${1:-}"
+  if [[ "${DEBUG}" == "nvmish" ]] ; then
+    echo "DEBUG: ${1}"
   fi
 }
   
