@@ -6,6 +6,8 @@
 # Exit code:
 # 0 Successfully installed and using the desired version
 # 1 No package.json in current directory
+#
+# See debug messages by setting DEBUG=nvmish in your environment
 
 function __nvmish_needs_resolution() {
   local semver=$1
@@ -52,14 +54,17 @@ function __nvmish_install_npm() {
   return $?
 }
 
+function nvmish_debug () {
+  if [[ "${DEBUG}" == "nvmish" ]] ; then
+    echo "DEBUG: ${1}"
+  fi
+}
+  
+
 function nvmish() {
   if [[ ! -f package.json ]] ; then
-    if [[ "$1" != "chpwd" ]] ; then
-      echo "No package.json found in current directory"
-      return 1
-    else
-      return 0
-    fi
+    nvmish_debug "No package.json in current directory"
+    return 0
   fi
 
   local blessed_nodejs_version=6
