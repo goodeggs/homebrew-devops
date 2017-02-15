@@ -1,9 +1,9 @@
 class Ranch < Formula
   desc "Ranch Platform CLI"
   homepage "https://github.com/goodeggs/platform/tree/master/cmd/ranch"
-  version "7.0.1"
+  version "7.0.2"
   url "https://github.com/goodeggs/platform/releases/download/v#{version}/ranch_#{version}_darwin_amd64.zip"
-  sha256 "0408529e982c2b12c8b6de1457ca2fbc16650df0f9b8c5c029f2dd4bd7cf774f"
+  sha256 "9d168061c53a3e3a836e3dcdd36553867e4ef80a28c03d3b702a3e4bd980cd6b"
 
   def install
     bin.install "ranch"
