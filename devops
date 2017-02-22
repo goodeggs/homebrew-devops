@@ -14,16 +14,18 @@ function usage() {
 }
 
 function mongoOpts() {
-  json=$( vault read -format=json secret/mongo/$1 )
-  replicaset=$( echo $json | jq -r '.data.replicaset' )
-  seeds=$( echo $json | jq -r '.data.seeds' )
-  ssl=$( echo $json | jq -r 'if .data.ssl then "--ssl --sslAllowInvalidCertificates" else "" end' )
+  cluster="$1"
 
-  json=$( vault read -format=json secret/mongo/$1/admin/devops )
-  user=$( echo $json | jq -r '.data.user' )
-  pass=$( echo $json | jq -r '.data.pass' )
+  json=$( vault read -format=json "secret/mongo/$cluster" )
+  replicaset=$( echo "$json" | jq -r '.data.replicaset' )
+  seeds=$( echo "$json" | jq -r '.data.seeds' )
+  ssl=$( echo "$json" | jq -r 'if .data.ssl then "&ssl=true" else "" end' )
 
-  echo "--authenticationDatabase admin -u $user -p $pass --host $replicaset/$seeds $ssl"
+  json=$( vault read -format=json "secret/mongo/$cluster/admin/devops" )
+  user=$( echo "$json" | jq -r '.data.user' )
+  pass=$( echo "$json" | jq -r '.data.pass' )
+
+  echo "mongodb://${user}:${pass}@${seeds}/admin?replicaSet=${replicaset}${ssl}"
 }
 
 function mkpass() {
@@ -77,7 +79,7 @@ case $subcommand in
         user=$1 && shift || usage
         pass=$(mkpass)
         echo creating user $user with password $pass on db $db
-        mongo $(mongoOpts $cluster) --eval "db.createUser({user: \"$user\", pwd: \"$pass\", roles: [\"readWrite\"]})" $db
+        mongo "$(mongoOpts $cluster)" --eval "db.getSiblingDB(\"$db\").createUser({user: \"$user\", pwd: \"$pass\", roles: [\"readWrite\"]})"
         vault_key="secret/mongo/$cluster/$db/$user"
         vault write $vault_key user=$user pass=$pass
         mongoDsn $cluster $db $user
@@ -88,7 +90,7 @@ case $subcommand in
         db=$1 && shift || usage
         user=$1 && shift || usage
         echo deleting user $user on db $db
-        mongo $(mongoOpts $cluster) --eval "db.dropUser(\"$user\")" $db
+        mongo $(mongoOpts $cluster) --eval "db.getSiblingDB(\"$db\").dropUser(\"$user\")"
         ;;
 
       connect)
