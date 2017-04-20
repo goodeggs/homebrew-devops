@@ -1,0 +1,122 @@
+#!/bin/sh
+set -e
+# set -x
+
+main() {
+  [ "$(id -u)" -eq 0 ] || die "must be run as root"
+
+  mkdir -p /Library/Application\ Support/sslayer
+  cd /Library/Application\ Support/sslayer || exit 1
+  
+  case "$1" in
+    setup) setup ;;
+    *) server ;;
+  esac
+}
+
+die() {
+  echo "$*"
+  exit 1
+}
+
+setup() {
+  if [ ! -r cert.pem ]; then
+    echo "Generating *.goodeggs.dev wildcard cert:"
+    openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 3650 -sha256 -nodes -subj "/C=US/ST=California/L=San Francisco/O=Good Eggs/OU=Local Development/CN=*.goodeggs.dev" | sed 's//    /'
+    echo ""
+    echo "Now, I will open $PWD/cert.pem in Keychain Access, and you need to make sure SSL is set to Always Trust."
+    printf "Ready? [Y] "
+    read -r
+    open cert.pem
+  else
+    die "$PWD/cert.pem already exists.  You only need to do this setup once per machine.  Delete $PWD and re-run if you really want to re-install."
+  fi
+}
+
+server() {
+  MAPPINGS=$(cat <<EOF
+api.goodeggs.dev:3000
+manage.goodeggs.dev:3010
+ops.goodeggs.dev:8000
+ops-employees.goodeggs.dev:8005
+employees.goodeggs.dev:8005
+ops-employees-api.goodeggs.dev:8010
+employees-api.goodeggs.dev:8010
+ops-purchase-orders.goodeggs.dev:8025
+purchase-orders.goodeggs.dev:8025
+ops-purchase-orders-api.goodeggs.dev:8030
+purchase-orders-api.goodeggs.dev:8030
+inventory-api.goodeggs.dev:8040
+inventory.goodeggs.dev:8045
+customers-api.goodeggs.dev:8050
+availability-api.goodeggs.dev:8060
+domain-events.goodeggs.dev:9000
+demand-prediction-api.goodeggs.dev:8090
+pick-api.goodeggs.dev:9010
+shipping-api.goodeggs.dev:9020
+fulfillment.goodeggs.dev:9030
+fulfillment-options-api.goodeggs.dev:9040
+it-accounts-ui.goodeggs.dev:9050
+it-accounts-api.goodeggs.dev:9060
+pick-triage-api.goodeggs.dev:9070
+pick-triage.goodeggs.dev:9075
+gather.goodeggs.dev:9085
+EOF
+)
+  
+  cat > nginx.conf <<EOF
+daemon off;
+worker_processes auto;
+
+events {
+    worker_connections  1024;
+}
+
+http {
+    default_type  application/octet-stream;
+
+    ssl_certificate     "$PWD/cert.pem";
+    ssl_certificate_key "$PWD/key.pem";
+
+    server {
+    	listen 80 default_server;
+    	server_name _;
+    	return 301 https://\$host\$request_uri;
+    }
+EOF
+  
+  idx=0
+  for entry in $MAPPINGS; do
+    idx=$((idx + 1))
+    hostname=$(echo "$entry" | awk -F: '{print $1}')
+    port=$(echo "$entry" | awk -F: '{print $2}')
+    
+    cat >> nginx.conf <<EOF
+
+    upstream u${idx} {
+        server 127.0.0.1:${port};
+    }
+
+    server {
+        listen 443 ssl;
+        server_name ${hostname};
+        location / {
+            proxy_pass http://u${idx};
+            proxy_set_header Host \$host;
+            proxy_set_header X-Real-IP \$remote_addr;
+            proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto \$scheme;
+            proxy_set_header Fastly-SSL 1;
+        }
+    }
+EOF
+  done
+  
+  echo '}' >> nginx.conf
+  
+  echo "starting nginx!"
+  exec nginx -c "$PWD/nginx.conf"
+}
+
+main "$@"
+
