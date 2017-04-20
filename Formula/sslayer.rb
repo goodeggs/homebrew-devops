@@ -7,7 +7,7 @@ class Sslayer < Formula
   depends_on 'nginx'
 
   def install
-    prefix.install 'sslayer'
+    bin.install 'sslayer'
   end
 
   def caveats
