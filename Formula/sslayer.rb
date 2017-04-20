@@ -31,7 +31,9 @@ class Sslayer < Formula
         <false/>
         <key>ProgramArguments</key>
         <array>
-            <string>#{opt_bin}/sslayer</string>
+            <string>#{bin}/sslayer</string>
+            <string>start</string>
+            <string>#{Formula["nginx"].opt_bin}/nginx</string>
         </array>
         <key>WorkingDirectory</key>
         <string>#{HOMEBREW_PREFIX}</string>

@@ -10,7 +10,7 @@ main() {
   
   case "$1" in
     setup) setup ;;
-    *) server ;;
+    start) server "$2" ;;
   esac
 }
 
@@ -34,6 +34,8 @@ setup() {
 }
 
 server() {
+  path_to_nginx="$1"
+
   MAPPINGS=$(cat <<EOF
 api.goodeggs.dev:3000
 manage.goodeggs.dev:3010
@@ -115,7 +117,7 @@ EOF
   echo '}' >> nginx.conf
   
   echo "starting nginx!"
-  exec nginx -c "$PWD/nginx.conf"
+  exec "$path_to_nginx" -c "$PWD/nginx.conf"
 }
 
 main "$@"
