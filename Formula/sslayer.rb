@@ -2,7 +2,7 @@ class Sslayer < Formula
   desc 'SSL terminating reverse proxy for the Good Eggs ecosystem'
   homepage 'https://github.com/goodeggs/homebrew-delivery-eng'
   url 'https://github.com/goodeggs/homebrew-delivery-eng.git'
-  version '1.1.0'
+  version '1.1.1'
 
   depends_on 'nginx'
 
