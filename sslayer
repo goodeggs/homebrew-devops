@@ -51,7 +51,7 @@ subjectAltName = @alternate_names
 [ alternate_names ]
 DNS.1 = *.goodeggs.dev
 EOF
-    openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 3650 -sha256 -nodes -config openssl.conf | sed 's//    /'
+    openssl req -batch -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 3650 -sha256 -nodes -config openssl.conf | sed 's//    /'
     echo ""
     echo "Now, I will open $PWD/cert.pem in Keychain Access, and you need to make sure SSL is set to Always Trust."
     printf "Ready? [Y] "
