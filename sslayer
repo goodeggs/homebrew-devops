@@ -22,7 +22,36 @@ die() {
 setup() {
   if [ ! -r cert.pem ]; then
     echo "Generating *.goodeggs.dev wildcard cert:"
-    openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 3650 -sha256 -nodes -subj "/C=US/ST=California/L=San Francisco/O=Good Eggs/OU=Local Development/CN=*.goodeggs.dev" | sed 's//    /'
+  cat > openssl.conf <<EOF
+[ req ]
+distinguished_name = subject
+req_extensions      = req_ext
+x509_extensions     = x509_ext
+
+[ subject ]
+countryName = Country Name (2-letter code)
+countryName_default = US
+stateOrProvinceName = State or Province Name (full name)
+stateOrProvinceName_default = California
+localityName = Locality Name (e.g. city)
+localityName_default = San Francisco
+organizationName = Organization Name
+organizationName_default = Good Eggs
+organizationalUnitName = Organization Unit
+organizationalUnitName_default = Local Development
+commonName = Common Name
+commonName_default = *.goodeggs.dev
+
+[ req_ext ]
+subjectAltName = @alternate_names
+
+[ x509_ext ]
+subjectAltName = @alternate_names
+
+[ alternate_names ]
+DNS.1 = *.goodeggs.dev
+EOF
+    openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 3650 -sha256 -nodes -config openssl.conf | sed 's//    /'
     echo ""
     echo "Now, I will open $PWD/cert.pem in Keychain Access, and you need to make sure SSL is set to Always Trust."
     printf "Ready? [Y] "
