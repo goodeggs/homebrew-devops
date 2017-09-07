@@ -3,7 +3,7 @@ require 'formula'
 class Nvmish < Formula
   homepage 'https://github.com/goodeggs/homebrew-delivery-eng/'
   url 'https://github.com/goodeggs/homebrew-delivery-eng.git'
-  version '6.0.0'
+  version '6.1.0'
 
   depends_on 'jq'
 
@@ -26,7 +26,9 @@ class Nvmish < Formula
 
       You need to add this line to your .zshrc / .bash_profile / etc:
           source $(brew --prefix nvmish)/nvmish.sh
-
+  
+      You may also disable the automatic running of nvmish on cd:
+          export NVMISH_NO_AUTO=1
     EOS
   end
 
