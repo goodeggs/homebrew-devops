@@ -82,5 +82,5 @@ function nvmish() {
 
 function cd() {
   builtin cd "$@"
-  nvmish
+  [ -z "$NVMISH_NO_AUTO" ] && nvmish
 }
