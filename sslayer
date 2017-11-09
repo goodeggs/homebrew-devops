@@ -94,6 +94,7 @@ pick-triage.goodeggs.dev:9075
 gather.goodeggs.dev:9085
 devices.goodeggs.dev:9095
 merchandising.goodeggs.dev:9100
+catalog-api.goodeggs.dev:9130
 EOF
 )
   
