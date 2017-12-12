@@ -68,6 +68,8 @@ server() {
 
   MAPPINGS=$(cat <<EOF
 api.goodeggs.localhost:3000
+www.goodeggs.localhost:3000
+mobile-api.goodeggs.localhost:3003
 manage.goodeggs.localhost:3010
 ops.goodeggs.localhost:8000
 ops-employees.goodeggs.localhost:8005
