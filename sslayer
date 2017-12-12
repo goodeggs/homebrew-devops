@@ -7,10 +7,11 @@ main() {
 
   mkdir -p /Library/Application\ Support/sslayer
   cd /Library/Application\ Support/sslayer || exit 1
-  
+
   case "$1" in
     setup) setup ;;
     start) server "$2" ;;
+    *) die "usage: slayer [setup | server path/to/nginx]" ;;
   esac
 }
 
