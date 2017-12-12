@@ -22,7 +22,7 @@ die() {
 
 setup() {
   if [ ! -r cert.pem ]; then
-    echo "Generating *.goodeggs.dev wildcard cert:"
+    echo "Generating *.goodeggs.localhost wildcard cert:"
   cat > openssl.conf <<EOF
 [ req ]
 distinguished_name = subject
@@ -41,7 +41,7 @@ organizationName_default = Good Eggs
 organizationalUnitName = Organization Unit
 organizationalUnitName_default = Local Development
 commonName = Common Name
-commonName_default = *.goodeggs.dev
+commonName_default = *.goodeggs.localhost
 
 [ req_ext ]
 subjectAltName = @alternate_names
@@ -50,7 +50,7 @@ subjectAltName = @alternate_names
 subjectAltName = @alternate_names
 
 [ alternate_names ]
-DNS.1 = *.goodeggs.dev
+DNS.1 = *.goodeggs.localhost
 EOF
     openssl req -batch -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 3650 -sha256 -nodes -config openssl.conf | sed 's//    /'
     echo ""
@@ -67,38 +67,38 @@ server() {
   path_to_nginx="$1"
 
   MAPPINGS=$(cat <<EOF
-api.goodeggs.dev:3000
-manage.goodeggs.dev:3010
-ops.goodeggs.dev:8000
-ops-employees.goodeggs.dev:8005
-employees.goodeggs.dev:8005
-ops-employees-api.goodeggs.dev:8010
-employees-api.goodeggs.dev:8010
-ops-purchase-orders.goodeggs.dev:8025
-purchase-orders.goodeggs.dev:8025
-ops-purchase-orders-api.goodeggs.dev:8030
-purchase-orders-api.goodeggs.dev:8030
-inventory-api.goodeggs.dev:8040
-inventory.goodeggs.dev:8045
-customers-api.goodeggs.dev:8050
-availability-api.goodeggs.dev:8060
-domain-events.goodeggs.dev:9000
-demand-prediction-api.goodeggs.dev:8090
-pick-api.goodeggs.dev:9010
-shipping-api.goodeggs.dev:9020
-fulfillment.goodeggs.dev:9030
-fulfillment-options-api.goodeggs.dev:9040
-it-accounts-ui.goodeggs.dev:9050
-it-accounts-api.goodeggs.dev:9060
-pick-triage-api.goodeggs.dev:9070
-pick-triage.goodeggs.dev:9075
-gather.goodeggs.dev:9085
-devices.goodeggs.dev:9095
-merchandising.goodeggs.dev:9100
-catalog-api.goodeggs.dev:9130
+api.goodeggs.localhost:3000
+manage.goodeggs.localhost:3010
+ops.goodeggs.localhost:8000
+ops-employees.goodeggs.localhost:8005
+employees.goodeggs.localhost:8005
+ops-employees-api.goodeggs.localhost:8010
+employees-api.goodeggs.localhost:8010
+ops-purchase-orders.goodeggs.localhost:8025
+purchase-orders.goodeggs.localhost:8025
+ops-purchase-orders-api.goodeggs.localhost:8030
+purchase-orders-api.goodeggs.localhost:8030
+inventory-api.goodeggs.localhost:8040
+inventory.goodeggs.localhost:8045
+customers-api.goodeggs.localhost:8050
+availability-api.goodeggs.localhost:8060
+domain-events.goodeggs.localhost:9000
+demand-prediction-api.goodeggs.localhost:8090
+pick-api.goodeggs.localhost:9010
+shipping-api.goodeggs.localhost:9020
+fulfillment.goodeggs.localhost:9030
+fulfillment-options-api.goodeggs.localhost:9040
+it-accounts-ui.goodeggs.localhost:9050
+it-accounts-api.goodeggs.localhost:9060
+pick-triage-api.goodeggs.localhost:9070
+pick-triage.goodeggs.localhost:9075
+gather.goodeggs.localhost:9085
+devices.goodeggs.localhost:9095
+merchandising.goodeggs.localhost:9100
+catalog-api.goodeggs.localhost:9130
 EOF
 )
-  
+
   cat > nginx.conf <<EOF
 daemon off;
 worker_processes auto;
@@ -119,13 +119,13 @@ http {
     	return 301 https://\$host\$request_uri;
     }
 EOF
-  
+
   idx=0
   for entry in $MAPPINGS; do
     idx=$((idx + 1))
     hostname=$(echo "$entry" | awk -F: '{print $1}')
     port=$(echo "$entry" | awk -F: '{print $2}')
-    
+
     cat >> nginx.conf <<EOF
 
     upstream u${idx} {
@@ -146,12 +146,11 @@ EOF
     }
 EOF
   done
-  
+
   echo '}' >> nginx.conf
-  
+
   echo "starting nginx!"
   exec "$path_to_nginx" -c "$PWD/nginx.conf"
 }
 
 main "$@"
-
