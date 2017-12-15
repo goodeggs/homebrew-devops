@@ -84,7 +84,6 @@ inventory-api.goodeggs.test:8040
 inventory.goodeggs.test:8045
 customers-api.goodeggs.test:8050
 availability-api.goodeggs.test:8060
-domain-events.goodeggs.test:9000
 demand-prediction-api.goodeggs.test:8090
 pick-api.goodeggs.test:9010
 shipping-api.goodeggs.test:9020
@@ -97,6 +96,8 @@ pick-triage.goodeggs.test:9075
 gather.goodeggs.test:9085
 devices.goodeggs.test:9095
 merchandising.goodeggs.test:9100
+drive.goodeggs.test:9110
+fulfillment-options.goodeggs.test:9120
 catalog-api.goodeggs.test:9130
 EOF
 )
