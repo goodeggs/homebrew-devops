@@ -3,7 +3,7 @@ class Ranch < Formula
   homepage "https://github.com/goodeggs/platform/tree/master/cmd/ranch"
   version "9.5.0"
   url "https://github.com/goodeggs/platform/releases/download/v#{version}/ranch-Darwin-x86_64"
-  sha256 "bde2256e63b7a386651ef3b335976b97868d16af5f15819b824052c90c927e23"
+  sha256 "9de25c47bf737c4364b79c223b6138032a8386631ae842ba58050c6cc1d32b13"
 
   def install
     bin.install "ranch-Darwin-x86_64" => "ranch"
