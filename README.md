@@ -1,15 +1,17 @@
-homebrew-delivery-eng
----------------------
-The Delivery Engineering Team's Homebrew formulae.
+homebrew-devops
+---------------
+The DevOps Team's Homebrew formulae.
 
 * `nvmish` -- an rvm-like node version selector that reads engines.node from package.json
+* `ranch` -- the Ranch CLI
+* `goodeggs` -- the Good Eggs CLI
+* `devops` -- the DevOps CLI
 
 ----
 
 ## Installation
 
 ```
-brew tap goodeggs/delivery-eng
-brew install nvmish
+brew install goodeggs/devops/nvmish
 ```
 
