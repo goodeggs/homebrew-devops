@@ -3,7 +3,7 @@ require 'formula'
 class Nvmish < Formula
   homepage 'https://github.com/goodeggs/homebrew-delivery-eng/'
   url 'https://github.com/goodeggs/homebrew-delivery-eng.git'
-  version '6.1.0'
+  version '6.1.1'
 
   depends_on 'jq'
 
@@ -20,7 +20,7 @@ class Nvmish < Formula
   end
 
   def caveats
-    <<-EOS.undent
+    <<~EOS
       nvmish depends on nvm, but it is up to you to install it:
           https://github.com/creationix/nvm/blob/master/README.markdown#install-script
 
