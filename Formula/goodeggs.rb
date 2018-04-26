@@ -1,9 +1,9 @@
 class Goodeggs < Formula
   desc "Good Eggs CLI"
   homepage "https://github.com/goodeggs/goodeggs-cli"
-  version "1.0.3"
+  version "2.0.0"
   url "https://github.com/goodeggs/goodeggs-cli/releases/download/v#{version}/goodeggs-Darwin-x86_64", :using => GitHubPrivateRepositoryReleaseDownloadStrategy
-  sha256 "6d9e37f8879c238e4018cab352569e66f03ac40009895d17e694a788feaf6fed"
+  sha256 "9ac680ac8ddd08475c1df696fd74ec4c502f140d3a7c6c988f4a50958e586615"
 
   def install
     bin.install "goodeggs-Darwin-x86_64" => "goodeggs"
