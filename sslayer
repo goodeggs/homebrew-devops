@@ -1,159 +1,125 @@
 #!/bin/sh
-set -e
-# set -x
 
-main() {
-  [ "$(id -u)" -eq 0 ] || die "must be run as root"
+set -o errexit
+set -o nounset
+set -o pipefail
 
-  mkdir -p /Library/Application\ Support/sslayer
-  cd /Library/Application\ Support/sslayer || exit 1
+CA_ROOT_DIR="$HOME/Library/Application Support/mkcert"
 
-  case "$1" in
-    setup) setup ;;
-    start) server "$2" ;;
-    *) die "usage: slayer [setup | server path/to/nginx]" ;;
-  esac
-}
-
-die() {
-  echo "$*"
+fatal() {
+  echo "ERROR: $*"
   exit 1
 }
 
-setup() {
-  if [ ! -r cert.pem ]; then
-    echo "Generating *.goodeggs.test wildcard cert:"
-  cat > openssl.conf <<EOF
-[ req ]
-distinguished_name = subject
-req_extensions      = req_ext
-x509_extensions     = x509_ext
+log() {
+  echo "INFO: $*"
+}
 
-[ subject ]
-countryName = Country Name (2-letter code)
-countryName_default = US
-stateOrProvinceName = State or Province Name (full name)
-stateOrProvinceName_default = California
-localityName = Locality Name (e.g. city)
-localityName_default = San Francisco
-organizationName = Organization Name
-organizationName_default = Good Eggs
-organizationalUnitName = Organization Unit
-organizationalUnitName_default = Local Development
-commonName = Common Name
-commonName_default = *.goodeggs.test
+configure_dnsmasq() {
+  mkdir -p /usr/local/etc
+  echo "address=/goodeggs.test/127.0.0.1" > /usr/local/etc/dnsmasq.conf
+}
 
-[ req_ext ]
-subjectAltName = @alternate_names
+configure_dns_resolver() {
+  mkdir -p /etc/resolver
+  echo "nameserver 127.0.0.1" > /etc/resolver/goodeggs.test
+}
 
-[ x509_ext ]
-subjectAltName = @alternate_names
+generate_ssl_certificate() {
+  mkdir -p "$CA_ROOT_DIR"
+  docker run \
+    --rm \
+    --name mkcert \
+    --mount "type=bind,src=$CA_ROOT_DIR,dst=/root/.local/share/mkcert" \
+    goodeggs/mkcert \
+    '*.goodeggs.test'
+  security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain "$CA_ROOT_DIR/rootCA.pem"
+}
 
-[ alternate_names ]
-DNS.1 = *.goodeggs.test
-EOF
-    openssl req -batch -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 3650 -sha256 -nodes -config openssl.conf | sed 's//    /'
-    echo ""
-    echo "Now, I will open $PWD/cert.pem in Keychain Access, and you need to make sure SSL is set to Always Trust."
-    printf "Ready? [Y] "
-    read -r
-    open cert.pem
-  else
-    die "$PWD/cert.pem already exists.  You only need to do this setup once per machine.  Delete $PWD and re-run if you really want to re-install."
+migrate_from_legacy_sslayer() {
+  # Stop legacy sslayer
+  if [ "$(brew services list | grep sslayer | awk '{print $2}')" -eq "" ]; then
+    log "Stopping legacy sslayer..."
+    brew services stop sslayer
   fi
 }
 
-server() {
-  path_to_nginx="$1"
+#
+# Commands
+#
 
-  MAPPINGS=$(cat <<EOF
-api.goodeggs.test:3000
-www.goodeggs.test:3000
-mobile-api.goodeggs.test:3003
-manage.goodeggs.test:3010
-ops.goodeggs.test:8000
-ops-employees.goodeggs.test:8005
-employees.goodeggs.test:8005
-ops-employees-api.goodeggs.test:8010
-employees-api.goodeggs.test:8010
-ops-purchase-orders.goodeggs.test:8025
-purchase-orders.goodeggs.test:8025
-ops-purchase-orders-api.goodeggs.test:8030
-purchase-orders-api.goodeggs.test:8030
-inventory-api.goodeggs.test:8040
-inventory.goodeggs.test:8045
-customers-api.goodeggs.test:8050
-availability-api.goodeggs.test:8060
-demand-prediction-api.goodeggs.test:8090
-pick-api.goodeggs.test:9010
-shipping-api.goodeggs.test:9020
-fulfillment.goodeggs.test:9030
-fulfillment-options-api.goodeggs.test:9040
-it-accounts-ui.goodeggs.test:9050
-it-accounts-api.goodeggs.test:9060
-pick-triage-api.goodeggs.test:9070
-pick-triage.goodeggs.test:9075
-gather.goodeggs.test:9085
-devices.goodeggs.test:9095
-merchandising.goodeggs.test:9100
-drive.goodeggs.test:9110
-fulfillment-options.goodeggs.test:9120
-catalog-api.goodeggs.test:9130
-EOF
-)
+setup() {
+  # Check to ensure the user is logged in (this will succeed if the user is already logged in)
+  docker login
 
-  cat > nginx.conf <<EOF
-daemon off;
-worker_processes auto;
+  # Configure OS X to send all requests to *.goodeggs.test to localhost
+  configure_dnsmasq
+  configure_dns_resolver
 
-events {
-    worker_connections  1024;
+  log "Finished setting up sslayer. Run \`sslayer start\` as root to start sslayer."
 }
 
-http {
-    default_type  application/octet-stream;
+start() {
+  if ! pgrep dnsmasq > /dev/null; then
+    brew services start dnsmasq
+  fi
 
-    ssl_certificate     "$PWD/cert.pem";
-    ssl_certificate_key "$PWD/key.pem";
+  # If sslayer is already running, bail.
+  if [ "$(docker ps --all --filter "name=^sslayer$" --filter "status=running" --format "{{.ID}}")" != "" ]; then
+    fatal "sslayer is already running."
+  fi
 
-    server {
-    	listen 80 default_server;
-    	server_name _;
-    	return 301 https://\$host\$request_uri;
-    }
-EOF
+  # If the container already exists, start it.
+  if [ "$(docker ps --all --filter "name=^sslayer$" --filter "status=exited" --format "{{.ID}}")" != "" ]; then
+    log "Starting existing sslayer container."
+    docker start sslayer > /dev/null
+    log "Started sslayer."
+    return
+  fi
 
-  idx=0
-  for entry in $MAPPINGS; do
-    idx=$((idx + 1))
-    hostname=$(echo "$entry" | awk -F: '{print $1}')
-    port=$(echo "$entry" | awk -F: '{print $2}')
+  # If no container exists, create one.
+  log "Creating a sslayer container."
+  docker run -d \
+    --name sslayer \
+    --restart unless-stopped \
+    --mount "type=bind,src=$CA_ROOT_DIR,dst=/usr/local/share/ca-certificates" \
+    --mount "type=bind,src=$CA_ROOT_DIR/certs,dst=/etc/nginx/certs" \
+    -p 80:80 \
+    -p 443:443 \
+    goodeggs/sslayer:osx > /dev/null
+  log "Started sslayer."
+}
 
-    cat >> nginx.conf <<EOF
+stop() {
+  brew services stop dnsmasq > /dev/null 2>&1 ||
+  docker stop sslayer > /dev/null
+}
 
-    upstream u${idx} {
-        server 127.0.0.1:${port};
-    }
+update() {
+  log "Stopping sslayer..."
+  docker stop sslayer > /dev/null 2>&1 ||
+  docker rm sslayer > /dev/null 2>&1 ||
+  docker pull goodeggs/sslayer:osx
 
-    server {
-        listen 443 ssl;
-        server_name ${hostname};
-        location / {
-            proxy_pass http://u${idx};
-            proxy_set_header Host \$host;
-            proxy_set_header X-Real-IP \$remote_addr;
-            proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto \$scheme;
-            proxy_set_header Fastly-SSL 1;
-        }
-    }
-EOF
-  done
+  start
+}
 
-  echo '}' >> nginx.conf
+#
+# Main
+#
 
-  echo "starting nginx!"
-  exec "$path_to_nginx" -c "$PWD/nginx.conf"
+main() {
+  if [ "$(id -u)" -ne 0 ]; then
+    fatal "Must be run as root"
+  fi
+
+  case "${1-}" in
+    setup) setup "${2-}" ;;
+    start) start "${2-}" ;;
+    stop) stop "${2-}" ;;
+    update) update "${2-}" ;;
+    *) fatal "usage: slayer [setup | server | stop | update]" ;;
+  esac
 }
 
 main "$@"

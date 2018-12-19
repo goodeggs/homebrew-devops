@@ -1,45 +1,36 @@
 class Sslayer < Formula
-  desc 'SSL terminating reverse proxy for the Good Eggs ecosystem'
+  desc 'SSL-terminating reverse proxy for the Good Eggs ecosystem'
   homepage 'https://github.com/goodeggs/homebrew-delivery-eng'
   url 'https://github.com/goodeggs/homebrew-delivery-eng.git'
-  version '1.6.1'
+  version '2.0.0'
 
-  depends_on 'nginx'
+  depends_on 'dnsmasq'
+  depends_on 'docker'
 
   def install
     bin.install 'sslayer'
   end
 
   def caveats
-    <<~EOS
-      To complete the install of sslayer, you must run:
-        - sudo sslayer setup
-        - sudo brew services start sslayer
-    EOS
-  end
+    has_legacy_hosts = File.foreach("/etc/hosts").grep(/goodeggs\.test/).any?
 
-  def plist; <<~EOS
-    <?xml version="1.0" encoding="UTF-8"?>
-    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-    <plist version="1.0">
-      <dict>
-        <key>Label</key>
-        <string>#{plist_name}</string>
-        <key>RunAtLoad</key>
-        <true/>
-        <key>KeepAlive</key>
-        <false/>
-        <key>ProgramArguments</key>
-        <array>
-            <string>#{bin}/sslayer</string>
-            <string>start</string>
-            <string>#{Formula["nginx"].opt_bin}/nginx</string>
-        </array>
-        <key>WorkingDirectory</key>
-        <string>#{HOMEBREW_PREFIX}</string>
-      </dict>
-    </plist>
-    EOS
-  end
+    caveat = <<~EOS
+To complete the install of sslayer, run:
+  - sudo sslayer setup
+  - sudo sslayer start
 
+Then add the following to #{Utils::Shell.profile}:
+
+  NODE_EXTRA_CA_CERTS="$HOME/Library/Application Support/mkcert/rootCA.pem"
+    EOS
+
+    if has_legacy_hosts
+      caveat = caveat + <<~EOS
+
+Finally, remove all goodeggs.test entries from your /etc/hosts file.
+      EOS
+    end
+
+    caveat
+  end
 end
