@@ -38,7 +38,7 @@ generate_ssl_certificate() {
 
 migrate_from_legacy_sslayer() {
   # Stop legacy sslayer
-  if [ "$(brew services list | grep sslayer | awk '{print $2}')" -eq "" ]; then
+  if [ "$(brew services list | grep sslayer | awk '{print $2}')" = "started" ]; then
     log "Stopping legacy sslayer..."
     brew services stop sslayer
   fi
@@ -51,6 +51,14 @@ migrate_from_legacy_sslayer() {
 setup() {
   # Check to ensure the user is logged in (this will succeed if the user is already logged in)
   docker login
+
+  # If upgrading from sslayer v1, make sure to stop it
+  migrate_from_legacy_sslayer
+
+  # Generate a new root certificate if one does not yet exist
+  if [ ! -e "$CA_ROOT_DIR" ]; then
+    generate_ssl_certificate
+  fi
 
   # Configure OS X to send all requests to *.goodeggs.test to localhost
   configure_dnsmasq
