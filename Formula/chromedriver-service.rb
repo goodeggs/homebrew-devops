@@ -21,14 +21,14 @@ class ChromedriverService < Formula
     <plist version="1.0">
     <dict>
       <key>Label</key>
-      <string>homebrew.mxcl.chromedriver</string>
+      <string>homebrew.mxcl.chromedriver-service</string>
       <key>RunAtLoad</key>
       <true/>
       <key>KeepAlive</key>
       <false/>
       <key>ProgramArguments</key>
       <array>
-        <string>#{opt_bin}/chromedriver</string>
+        <string>#{Formula["chromedriver"].opt_bin}/chromedriver</string>
       </array>
       <key>ServiceDescription</key>
       <string>Chrome Driver</string>
