@@ -17,12 +17,16 @@ log() {
 
 configure_dnsmasq() {
   mkdir -p /usr/local/etc
-  echo "address=/goodeggs.test/127.0.0.1" > /usr/local/etc/dnsmasq.conf
+  tee /usr/local/etc/dnsmasq.conf > /dev/null << EOF
+address=/goodeggs.test/127.0.0.1
+EOF
 }
 
 configure_dns_resolver() {
-  mkdir -p /etc/resolver
-  echo "nameserver 127.0.0.1" > /etc/resolver/goodeggs.test
+  sudo mkdir /etc/resolver
+  sudo tee /etc/resolver/goodeggs.test > /dev/null << EOF
+nameserver 127.0.0.1
+EOF
 }
 
 generate_ssl_certificate() {
@@ -33,14 +37,14 @@ generate_ssl_certificate() {
     --mount "type=bind,src=$CA_ROOT_DIR,dst=/root/.local/share/mkcert" \
     goodeggs/mkcert \
     '*.goodeggs.test'
-  security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain "$CA_ROOT_DIR/rootCA.pem"
+  sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain "$CA_ROOT_DIR/rootCA.pem"
 }
 
 migrate_from_legacy_sslayer() {
   # Stop legacy sslayer
   if [ "$(brew services list | grep sslayer | awk '{print $2}')" = "started" ]; then
     log "Stopping legacy sslayer..."
-    brew services stop sslayer
+    sudo brew services stop sslayer
   fi
 }
 
@@ -56,7 +60,7 @@ setup() {
   migrate_from_legacy_sslayer
 
   # Generate a new root certificate if one does not yet exist
-  if [ ! -e "$CA_ROOT_DIR" ]; then
+  if [ ! -f "$CA_ROOT_DIR/rootCA.pem" ]; then
     generate_ssl_certificate
   fi
 
@@ -69,7 +73,7 @@ setup() {
 
 start() {
   if ! pgrep dnsmasq > /dev/null; then
-    brew services start dnsmasq
+    sudo brew services start dnsmasq
   fi
 
   # If sslayer is already running, bail.
@@ -99,14 +103,14 @@ start() {
 }
 
 stop() {
-  brew services stop dnsmasq > /dev/null 2>&1 ||
+  sudo brew services stop dnsmasq > /dev/null 2>&1 || true
   docker stop sslayer > /dev/null
 }
 
 update() {
   log "Stopping sslayer..."
-  docker stop sslayer > /dev/null 2>&1 ||
-  docker rm sslayer > /dev/null 2>&1 ||
+  docker stop sslayer > /dev/null 2>&1
+  docker rm sslayer > /dev/null 2>&1 || true
   docker pull goodeggs/sslayer:osx
 
   start
@@ -117,10 +121,6 @@ update() {
 #
 
 main() {
-  if [ "$(id -u)" -ne 0 ]; then
-    fatal "Must be run as root"
-  fi
-
   case "${1-}" in
     setup) setup "${2-}" ;;
     start) start "${2-}" ;;

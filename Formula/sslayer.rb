@@ -16,8 +16,8 @@ class Sslayer < Formula
 
     caveat = <<~EOS
 To complete the install of sslayer, run:
-  - sudo sslayer setup
-  - sudo sslayer start
+  - sslayer setup
+  - sslayer start
 
 Then add the following to #{Utils::Shell.profile}:
 
@@ -27,7 +27,7 @@ Then add the following to #{Utils::Shell.profile}:
     if has_legacy_hosts
       caveat = caveat + <<~EOS
 
-Finally, remove all goodeggs.test entries from your /etc/hosts file.
+Finally, remove any goodeggs.test entries from your /etc/hosts file.
       EOS
     end
 
