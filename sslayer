@@ -73,7 +73,7 @@ setup() {
   configure_dnsmasq
   configure_dns_resolver
 
-  log "Finished setting up sslayer. Run \`sslayer start\` as root to start sslayer."
+  log "Finished setting up sslayer. Run \`sslayer start\` to start sslayer."
 
   mark_last_setup
 }
