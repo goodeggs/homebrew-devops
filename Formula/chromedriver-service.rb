@@ -9,10 +9,6 @@ class ChromedriverService < Formula
 
   bottle :unneeded
 
-  def install
-    system "true" # noop
-  end
-
   plist_options :manual => "chromedriver"
 
   def plist; <<~EOS
