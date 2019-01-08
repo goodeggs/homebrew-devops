@@ -15,6 +15,11 @@ log() {
   echo "INFO: $*"
 }
 
+mark_last_setup() {
+  mkdir -p "$HOME/Library/Application Support/sslayer"
+  date '+%s' > "$HOME/Library/Application Support/sslayer/.last_setup"
+}
+
 configure_dnsmasq() {
   mkdir -p /usr/local/etc
   tee /usr/local/etc/dnsmasq.conf > /dev/null << EOF
@@ -69,6 +74,8 @@ setup() {
   configure_dns_resolver
 
   log "Finished setting up sslayer. Run \`sslayer start\` as root to start sslayer."
+
+  mark_last_setup
 }
 
 start() {
@@ -107,10 +114,11 @@ stop() {
   docker stop sslayer > /dev/null
 }
 
-# Don't use sudo in this command, it gets run on post install.
+# Don't use sudo in this command, it gets run in Homebrew's post_install hook which does not permit
+# sudo.
 update() {
-  if [ "$(docker ps --all --filter "name=^sslayer$" --format "{{.ID}}")" = "" ]; then
-    log "Run sslayer setup and sslayer start before running sslayer upgrade."
+  if [ ! -f "$HOME/Library/Application Support/sslayer/.last_setup" ]; then
+    log "Cannot update sslayer before running setup."
     return
   fi
 
