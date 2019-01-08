@@ -1,12 +1,17 @@
 class ChromedriverService < Formula
   desc "Adds a service for Chromedriver"
   homepage "https://sites.google.com/a/chromium.org/chromedriver/"
-  url "https://github.com/goodeggs/homebrew-devops/blob/master/README.md" # fake it
+  url "https://raw.githubusercontent.com/goodeggs/homebrew-devops/master/.empty" # fake it
+  sha256 "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
   version "1.0"
 
   #depends_on cask: 'chromedriver'
 
   bottle :unneeded
+
+  def install
+    # noop
+  end
 
   plist_options :manual => "chromedriver"
 
