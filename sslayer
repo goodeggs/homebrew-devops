@@ -107,7 +107,13 @@ stop() {
   docker stop sslayer > /dev/null
 }
 
+# Don't use sudo in this command, it gets run on post install.
 update() {
+  if [ "$(docker ps --all --filter "name=^sslayer$" --format "{{.ID}}")" != "" ]; then
+    log "sslayer setup has not finished, cannot run sslayer upgrade. Run sslayer setup first."
+    return
+  fi
+
   log "Stopping sslayer..."
   docker stop sslayer > /dev/null 2>&1
   docker rm sslayer > /dev/null 2>&1 || true

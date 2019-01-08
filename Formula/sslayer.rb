@@ -12,7 +12,7 @@ class Sslayer < Formula
   end
 
   def post_install
-    system "sslayer", "setup"
+    system "sslayer", "update"
   end
 
   def caveats
