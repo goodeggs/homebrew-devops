@@ -5,7 +5,7 @@ class ChromedriverService < Formula
   sha256 "863b571777ca92b569c1b61491fc0fe5f3e5e6b0ce77655e2ab10e639c3764e2"
   version "1.0"
 
-  #depends_on cask: 'chromedriver'
+  depends_on :chromedriver
 
   bottle :unneeded
 
@@ -28,7 +28,7 @@ class ChromedriverService < Formula
       <false/>
       <key>ProgramArguments</key>
       <array>
-        <string>#{Formula["chromedriver"].opt_bin}/chromedriver</string>
+        <string>/usr/local/bin/chromedriver</string>
       </array>
       <key>ServiceDescription</key>
       <string>Chrome Driver</string>
