@@ -2,7 +2,7 @@ class ChromedriverService < Formula
   desc "Adds a service for Chromedriver"
   homepage "https://sites.google.com/a/chromium.org/chromedriver/"
   url "https://raw.githubusercontent.com/goodeggs/homebrew-devops/master/.empty.tgz" # fake it
-  sha256 "e12eac1d47d112ebc15cf6227dff3238d124cf9f85738ee20deff7eba945625f"
+  sha256 "863b571777ca92b569c1b61491fc0fe5f3e5e6b0ce77655e2ab10e639c3764e2"
   version "1.0"
 
   #depends_on cask: 'chromedriver'
