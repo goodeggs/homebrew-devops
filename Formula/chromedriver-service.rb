@@ -3,7 +3,7 @@ class ChromedriverService < Formula
   homepage "https://sites.google.com/a/chromium.org/chromedriver/"
   version "1.0"
 
-  depends_on cask: 'chromedriver'
+  #depends_on cask: 'chromedriver'
 
   bottle :unneeded
 
