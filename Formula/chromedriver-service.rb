@@ -9,6 +9,10 @@ class ChromedriverService < Formula
 
   bottle :unneeded
 
+  def install
+    prefix.install 'empty'
+  end
+
   plist_options :manual => "chromedriver"
 
   def plist; <<~EOS
