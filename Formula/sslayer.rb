@@ -2,13 +2,17 @@ class Sslayer < Formula
   desc 'SSL-terminating reverse proxy for the Good Eggs ecosystem'
   homepage 'https://github.com/goodeggs/homebrew-delivery-eng'
   url 'https://github.com/goodeggs/homebrew-delivery-eng.git'
-  version '2.0.1'
+  version '2.0.2'
 
   depends_on 'dnsmasq'
   depends_on 'docker'
 
   def install
     bin.install 'sslayer'
+  end
+
+  def post_install
+    system "sslayer", "setup"
   end
 
   def caveats
