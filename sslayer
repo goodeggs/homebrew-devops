@@ -23,7 +23,7 @@ EOF
 }
 
 configure_dns_resolver() {
-  sudo mkdir /etc/resolver
+  sudo mkdir -p /etc/resolver
   sudo tee /etc/resolver/goodeggs.test > /dev/null << EOF
 nameserver 127.0.0.1
 EOF
