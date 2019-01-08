@@ -25,7 +25,7 @@ To complete the install of sslayer, run:
 
 Then add the following to #{Utils::Shell.profile}:
 
-  NODE_EXTRA_CA_CERTS="$HOME/Library/Application Support/mkcert/rootCA.pem"
+  export NODE_EXTRA_CA_CERTS="$HOME/Library/Application Support/mkcert/rootCA.pem"
     EOS
 
     if has_legacy_hosts
