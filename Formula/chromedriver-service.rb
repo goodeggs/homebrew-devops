@@ -1,6 +1,7 @@
 class ChromedriverService < Formula
   desc "Adds a service for Chromedriver"
   homepage "https://sites.google.com/a/chromium.org/chromedriver/"
+  url "https://github.com/goodeggs/homebrew-devops/blob/master/README.md" # fake it
   version "1.0"
 
   #depends_on cask: 'chromedriver'
