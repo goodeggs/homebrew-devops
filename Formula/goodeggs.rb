@@ -1,4 +1,5 @@
-require_relative "../custom_download_strategy.rb"
+require_relative "../lib/custom_download_strategy.rb"
+
 class Goodeggs < Formula
   desc "Good Eggs CLI"
   homepage "https://github.com/goodeggs/goodeggs-cli"
