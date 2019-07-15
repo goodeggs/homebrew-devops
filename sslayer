@@ -123,8 +123,9 @@ update() {
   fi
 
   log "Stopping sslayer..."
-  docker stop sslayer > /dev/null 2>&1
-  docker rm sslayer > /dev/null 2>&1 || true
+  if [ "$(docker ps --all --filter "name=^sslayer$" --format "{{.ID}}" | wc -l)" -gt 0 ]; then
+    docker rm -f sslayer
+  fi
   docker pull goodeggs/sslayer:osx
 
   start
