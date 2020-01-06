@@ -23,12 +23,16 @@ mark_last_setup() {
 configure_dnsmasq() {
   mkdir -p /usr/local/etc
   tee /usr/local/etc/dnsmasq.conf > /dev/null << EOF
+address=/goodeggs.dev/127.0.0.1
 address=/goodeggs.test/127.0.0.1
 EOF
 }
 
 configure_dns_resolver() {
   sudo mkdir -p /etc/resolver
+  sudo tee /etc/resolver/goodeggs.dev > /dev/null <<EOF
+nameserver 127.0.0.1
+EOF
   sudo tee /etc/resolver/goodeggs.test > /dev/null << EOF
 nameserver 127.0.0.1
 EOF
@@ -53,6 +57,15 @@ migrate_from_legacy_sslayer() {
   fi
 }
 
+install_goodeggs_dev_certs() {
+  echo "installing the latest goodeggs.dev cert & key"
+  docker pull goodeggs/goodeggs-dev-certs:latest
+  id=$(docker create goodeggs/goodeggs-dev-certs false)
+  docker cp "$id:/root/_.goodeggs.dev.crt" "$CA_ROOT_DIR/certs/"
+  docker cp "$id:/root/_.goodeggs.dev.key" "$CA_ROOT_DIR/certs/"
+  docker rm -f "$id"
+}
+
 #
 # Commands
 #
@@ -63,6 +76,8 @@ setup() {
 
   # If upgrading from sslayer v1, make sure to stop it
   migrate_from_legacy_sslayer
+
+  install_goodeggs_dev_certs
 
   # Generate a new root certificate if one does not yet exist
   if [ ! -f "$CA_ROOT_DIR/rootCA.pem" ]; then
@@ -98,6 +113,13 @@ start() {
 
   # If no container exists, create one.
   log "Creating a sslayer container."
+
+  # https://github.com/moby/moby/pull/40007
+  extra_args=""
+  if [ -n "${SSLAYER_DOCKER_MACHINE:-}" ]; then
+    extra_args+=" --add-host 'host.docker.internal:$(docker-machine ip)'"
+  fi
+
   docker run -d \
     --name sslayer \
     --restart unless-stopped \
@@ -105,6 +127,7 @@ start() {
     --mount "type=bind,src=$CA_ROOT_DIR/certs,dst=/etc/nginx/certs" \
     -p 80:80 \
     -p 443:443 \
+    $extra_args \
     goodeggs/sslayer:osx > /dev/null
   log "Started sslayer."
 }
