@@ -57,15 +57,6 @@ migrate_from_legacy_sslayer() {
   fi
 }
 
-install_goodeggs_dev_certs() {
-  echo "installing the latest goodeggs.dev cert & key"
-  docker pull goodeggs/goodeggs-dev-certs:latest
-  id=$(docker create goodeggs/goodeggs-dev-certs false)
-  docker cp "$id:/root/_.goodeggs.dev.crt" "$CA_ROOT_DIR/certs/"
-  docker cp "$id:/root/_.goodeggs.dev.key" "$CA_ROOT_DIR/certs/"
-  docker rm -f "$id"
-}
-
 #
 # Commands
 #
@@ -76,8 +67,6 @@ setup() {
 
   # If upgrading from sslayer v1, make sure to stop it
   migrate_from_legacy_sslayer
-
-  install_goodeggs_dev_certs
 
   # Generate a new root certificate if one does not yet exist
   if [ ! -f "$CA_ROOT_DIR/rootCA.pem" ]; then
