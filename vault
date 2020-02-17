@@ -1,0 +1,97 @@
+#!/usr/bin/env bash
+set -e
+set -o pipefail
+set -u
+
+# requires awk, git, git-crypt, mktemp, openssl, tar, tr, xargs
+
+VAULT_RELPATH=.git-crypt/vault.tgz
+
+cmd_init() {
+  git-crypt init
+  echo "$VAULT_RELPATH" >> .gitignore
+  git add .gitignore
+  git commit -qm 'gitignore git-crypt vault'
+  cmd_export
+}
+
+cmd_seal() {
+  vault_dir=$(mktemp -d)
+  vault_shallow_dir=$(mktemp -d)
+  git clone --depth 1 "file://$PWD" "$vault_shallow_dir"
+  pushd "$vault_shallow_dir"
+  # preserve encrypted files & git-crypt files, prune everything else
+  git-crypt status \
+    | grep '^not encrypted' | awk '{print $3}' \
+    | grep -Ev '(^.git-crypt/|.gitattributes)' \
+    | tr '\n' '\0' | xargs -0 git rm -qr
+  git config user.email 'devops-help@goodeggs.com'
+  git config user.name 'vault'
+  git commit -qm 'prune vault' || true
+  popd
+  git clone --depth 1 "file://$vault_shallow_dir" "$vault_dir"
+  tar -czC "$vault_dir" . > "$VAULT_RELPATH"
+  rm -rf "$vault_shallow_dir" "$vault_dir"
+  ls -lh "$VAULT_RELPATH"
+}
+
+cmd_export() {
+  tmpfile=$(mktemp)
+  git-crypt export-key "$tmpfile"
+  echo "here's your GITCRYPT_KEY, perhaps you want to run:"
+  echo "    ranch env:set GITCRYPT_KEY=$(openssl base64 -A -e < "$tmpfile")"
+  rm -f "$tmpfile"
+}
+
+cmd_unseal() {
+  app_dir=$PWD
+  vault_file="$app_dir/$VAULT_RELPATH"
+
+  [ -n "${GITCRYPT_KEY:-}" ] || { echo "ERROR: GITCRYPT_KEY must be set."; exit 1; }
+  [ -r "$vault_file" ] || { echo "ERROR: $vault_file must exist and be readable."; exit 1; }
+
+  tmpdir=$(mktemp -d)
+  tmpfile=$(mktemp)
+  pushd "$tmpdir"
+  tar xzf "$vault_file" > /dev/null
+  echo "$GITCRYPT_KEY" | openssl base64 -A -d > "$tmpfile"
+  git-crypt unlock "$tmpfile"
+  cp -a . "$app_dir"
+  popd
+  rm -rf "$tmpdir" "$tmpfile"
+}
+
+cmd_lock() {
+  git-crypt lock
+}
+
+cmd_unlock() {
+  if [ -n "$GITCRYPT_KEY" ]; then
+    if [ -t 1 ]; then echo "unlocking using GITCRYPT_KEY from your environment"; fi
+    keyfile=$(mktemp)
+    echo "$GITCRYPT_KEY" | openssl base64 -A -d > "$keyfile"
+    git-crypt unlock "$keyfile"
+    rm "$keyfile"
+  else
+    # try GPG
+    git-crypt unlock
+  fi
+}
+
+case "${1:-}" in
+  init) cmd_init ;;
+  seal) cmd_seal ;;
+  unseal) cmd_unseal ;;
+  export) cmd_export ;;
+  lock) cmd_lock ;;
+  unlock) cmd_unlock ;;
+  *)
+    cmd=$(basename "$0")
+    echo "usage:"
+    echo "    $cmd init"
+    echo "    $cmd seal"
+    echo "    $cmd unseal"
+    echo "    $cmd lock"
+    echo "    $cmd unlock"
+    echo "    $cmd export"
+esac
