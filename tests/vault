@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+set -e
+set -u
+shopt -s expand_aliases
+# set -x
+
+__dirname="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=2139
+alias vault="$(dirname "$__dirname")/vault"
+
+cd "$(mktemp -d)"
+
+output="$(mktemp)"
+
+git init .
+
+unset GITCRYPT_KEY
+vault init | tee "$output"
+# this should set GITCRYPT_KEY
+eval "$(tail -n1 "$output")"
+[ -n "$GITCRYPT_KEY" ] || { echo "expected last line of 'vault init' to show GITCRYPT_KEY"; exit 1; }
+export GITCRYPT_KEY
+
+echo 'hello world' > README.md
+cat <<EOF > .gitattributes
+secrets filter=git-crypt diff=git-crypt
+EOF
+git add .
+git commit -qm 'README & .gitattributes'
+echo 'sekret' > secrets
+git add .
+git commit -qm 'secrets'
+
+vault lock
+grep -q sekret secrets && { echo 'expected secrets to be encrypted'; exit 1; }
+
+vault unlock
+grep -q sekret secrets || { echo 'expected secrets to be decrypted'; exit 1; }
+
+# let's make a vault
+vault seal
+test -f .git-crypt/vault.tgz || { echo 'vault not found'; exit 1; }
+tar tvf .git-crypt/vault.tgz | grep -q secrets || { echo 'secrets not found in vault'; exit 1; }
+tar tvf .git-crypt/vault.tgz | grep -q README.md && { echo 'found README.md in vault'; exit 1; }
+
+vault lock
+grep -q sekret secrets && { echo 'expected secrets to be encrypted'; exit 1; }
+vault unseal
+grep -q sekret secrets || { echo 'expected secrets to be decrypted'; exit 1; }
+
+git reset --hard HEAD
+
+echo "tests passed!"
