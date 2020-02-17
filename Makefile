@@ -1,2 +1,2 @@
 test:
-	@tests/vault
+	@tests/git-crypt-keeper
