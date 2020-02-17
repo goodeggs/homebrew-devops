@@ -30,6 +30,7 @@ cmd_seal() {
   git commit -qm 'prune vault' || true
   popd
   git clone --depth 1 "file://$vault_shallow_dir" "$vault_dir"
+  mkdir -p "$(dirname "$VAULT_RELPATH")"
   tar -czC "$vault_dir" . > "$VAULT_RELPATH"
   rm -rf "$vault_shallow_dir" "$vault_dir"
   ls -lh "$VAULT_RELPATH"
@@ -38,8 +39,8 @@ cmd_seal() {
 cmd_export() {
   tmpfile=$(mktemp)
   git-crypt export-key "$tmpfile"
-  echo "here's your GITCRYPT_KEY, perhaps you want to run:"
-  echo "    ranch env:set GITCRYPT_KEY=$(openssl base64 -A -e < "$tmpfile")"
+  echo "here's your GITCRYPT_KEY, perhaps you want to run 'ranch env:set' next?"
+  echo "GITCRYPT_KEY=$(openssl base64 -A -e < "$tmpfile")"
   rm -f "$tmpfile"
 }
 
