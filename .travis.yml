@@ -1,0 +1,9 @@
+language: bash
+
+env:
+  global:
+    - PATH="/tmp/ci-tools:$PATH"
+
+install: curl -sSL https://github.com/goodeggs/travis-utils/raw/master/install-ci-tools.sh | CACHE_DIR=/tmp/ci-tools sh -s -- git-crypt
+
+script: make test
