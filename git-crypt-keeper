@@ -53,12 +53,12 @@ cmd_unseal() {
 
   tmpdir=$(mktemp -d)
   tmpfile=$(mktemp)
-  pushd "$tmpdir"
-  tar xzf "$vault_file" > /dev/null
+  pushd "$tmpdir" > /dev/null
+  tar -xzf "$vault_file" > /dev/null
   echo "$GITCRYPT_KEY" | openssl base64 -A -d > "$tmpfile"
   git-crypt unlock "$tmpfile"
-  cp -a . "$app_dir"
-  popd
+  cp -a {.[!.],}* "$app_dir"
+  popd > /dev/null
   rm -rf "$tmpdir" "$tmpfile"
 }
 
