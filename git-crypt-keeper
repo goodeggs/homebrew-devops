@@ -2,6 +2,7 @@
 set -e
 set -o pipefail
 set -u
+shopt -s nullglob
 
 # requires awk, git, git-crypt, mktemp, openssl, tar, tr, xargs
 
