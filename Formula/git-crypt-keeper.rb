@@ -3,7 +3,7 @@ require 'formula'
 class GitCryptKeeper < Formula
   homepage 'https://github.com/goodeggs/homebrew-devops/'
   url 'https://github.com/goodeggs/homebrew-devops.git'
-  version '1.0.0'
+  version '1.0.1'
 
   def install
     bin.install 'git-crypt-keeper'
