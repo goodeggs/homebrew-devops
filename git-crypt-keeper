@@ -58,7 +58,8 @@ cmd_unseal() {
   tar -xzf "$vault_file" > /dev/null
   echo "$GITCRYPT_KEY" | openssl base64 -A -d > "$tmpfile"
   git-crypt unlock "$tmpfile"
-  cp -a {.[!.],}* "$app_dir"
+  # copy everything but our pruned .git directory
+  ( GLOBIGNORE=.git ; cp -a {.[!.],}* "$app_dir" )
   popd > /dev/null
   rm -rf "$tmpdir" "$tmpfile"
 }
