@@ -14,6 +14,8 @@ output="$(mktemp)"
 
 git init .
 
+git commit --allow-empty -m 'initial commit'
+
 unset GITCRYPT_KEY
 git-crypt-keeper init | tee "$output"
 # this should set GITCRYPT_KEY
@@ -47,6 +49,7 @@ git-crypt-keeper lock
 grep -q sekret secrets && { echo 'expected secrets to be encrypted'; exit 1; }
 git-crypt-keeper unseal
 grep -q sekret secrets || { echo 'expected secrets to be decrypted'; exit 1; }
+[[ $(git log --grep 'initial commit' --oneline | wc -l) -eq 1 ]] || { echo 'expected unseal to preserve .git directory'; exit 1; }
 
 git reset --hard HEAD
 
