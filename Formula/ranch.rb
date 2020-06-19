@@ -14,17 +14,15 @@ class Ranch < Formula
       file.write <<-EOS
 #!/bin/bash
 
-set -o errexit
-set -o nounset
-set -o pipefail
+set -euo pipefail
 
 configure_dnsmasq() {
   mkdir -p /usr/local/etc
   mkdir -p /usr/local/etc/dnsmasq.d/
-  tee /usr/local/etc/dnsmasq.conf > /dev/null << EOF
+  cat << EOF > /usr/local/etc/dnsmasq.conf
 conf-dir=/usr/local/etc/dnsmasq.d/,*.conf
 EOF
-  tee /usr/local/etc/dnsmasq.d/goodeggs-internal.conf > /dev/null << EOF
+  cat << EOF > /usr/local/etc/dnsmasq.d/goodeggs-internal.conf
 address=/ranch-api.internal.goodeggs.com/127.0.0.1
 EOF
 }
@@ -42,7 +40,7 @@ sudo killall -HUP mDNSResponder
 echo 'dnsmasq configured!'
     EOS
   end
-    bin.install "ranch-api-resolver-helper" => "ranch-api-resolver-helper"
+    bin.install "ranch-api-resolver-helper"
   end
 
   plist_options :startup => true
