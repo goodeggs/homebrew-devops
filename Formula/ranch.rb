@@ -5,8 +5,103 @@ class Ranch < Formula
   url "http://ranch-updates.goodeggs.com/stable/ranch/#{version}/darwin-amd64.gz"
   sha256 "f89f3d1405c1b67138d5d6f99c732e048f47ee7a174a9e76f4973b20ce6b3983"
 
+  depends_on "autossh"
+  depends_on "dnsmasq"
+
   def install
     bin.install "darwin-amd64" => "ranch"
+    File.open('ranch-api-resolver-helper', 'w') do |file|
+      file.write <<-EOS
+#!/bin/bash
+
+set -o errexit
+set -o nounset
+set -o pipefail
+
+configure_dnsmasq() {
+  mkdir -p /usr/local/etc
+  mkdir -p /usr/local/etc/dnsmasq.d/
+  tee /usr/local/etc/dnsmasq.conf > /dev/null << EOF
+conf-dir=/usr/local/etc/dnsmasq.d/,*.conf
+EOF
+  tee /usr/local/etc/dnsmasq.d/goodeggs-internal.conf > /dev/null << EOF
+address=/ranch-api.internal.goodeggs.com/127.0.0.1
+EOF
+}
+
+configure_dns_resolver() {
+  mkdir -p /private/etc/resolver
+  sudo tee /etc/resolver/internal.goodeggs.com > /dev/null << EOF
+nameserver 127.0.0.1
+EOF
+}
+
+configure_dnsmasq
+configure_dns_resolver
+sudo killall -HUP mDNSResponder
+echo 'dnsmasq configured!'
+    EOS
+  end
+    bin.install "ranch-api-resolver-helper" => "ranch-api-resolver-helper"
+  end
+
+  plist_options :startup => true
+  def plist
+    <<~EOS
+    <?xml version="1.0" encoding="UTF-8"?>
+    <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+    <plist version="1.0">
+    <dict>
+        <key>Label</key>
+        <string>ranch.proxy</string>
+    <key>KeepAlive</key>
+        <true/>
+    <key>RunAtLoad</key>
+        <true/>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>SSH_AUTH_SOCK</key>
+        <string>#{ENV["SSH_AUTH_SOCK"]}</string>
+    </dict>
+    <key>ProgramArguments</key>
+        <array>
+            <string>/usr/local/bin/autossh</string>
+    <!-- autossh switches -->
+            <string>-M</string>
+            <string>0</string>
+    <!-- ssh switches -->
+            <string>-N</string>
+            <string>-T</string>
+    <string>-o</string>
+            <string>ControlMaster=no</string>
+    <string>-o</string>
+            <string>ServerAliveInterval=60</string>
+    <string>-o</string>
+            <string>ServerAliveCountMax=3</string>
+    <string>-p</string>
+            <string>22</string>
+    <string>-l</string>
+            <string>admin</string>
+    <string>-L</string>
+            <string>8005:ranch-api.internal.goodeggs.com:443</string>
+    <string>jump.us-east-1.prod-aws.goodeggs.com</string>
+        </array>
+   <key>StandardOutPath</key>
+   <string>#{ENV["HOME"]}/autossh.log</string>
+   <key>StandardErrorPath</key>
+   <string>#{ENV["HOME"]}/autossh_error.log</string>
+    </dict>
+    </plist>
+    EOS
+  end
+
+  def caveats
+    <<~EOS
+    - run "ranch-api-resolver-helper" to complete setup.
+    - Make sure "sslayer" is updated
+    - You may need to "sudo brew services restart dnsmasq" to refresh config
+    - Modify your ranch env vars to "export RANCH_ENDPOINT=https://ranch-api.internal.goodeggs.com:8005"
+    EOS
   end
 
   test do

@@ -22,10 +22,16 @@ mark_last_setup() {
 
 configure_dnsmasq() {
   mkdir -p /usr/local/etc
+  mkdir -p /usr/local/etc/dnsmasq.d/
   tee /usr/local/etc/dnsmasq.conf > /dev/null << EOF
+conf-dir=/usr/local/etc/dnsmasq.d/,*.conf
+EOF
+
+  tee /usr/local/etc/dnsmasq.d/goodeggs-dev.conf > /dev/null << EOF
 address=/goodeggs.dev/127.0.0.1
 address=/goodeggs.test/127.0.0.1
 EOF
+
 }
 
 configure_dns_resolver() {
