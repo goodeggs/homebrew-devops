@@ -86,10 +86,6 @@ echo 'dnsmasq configured!'
             <string>8005:ranch-api.internal.goodeggs.com:443</string>
     <string>jump.us-east-1.prod-aws.goodeggs.com</string>
         </array>
-   <key>StandardOutPath</key>
-   <string>#{ENV["HOME"]}/autossh.log</string>
-   <key>StandardErrorPath</key>
-   <string>#{ENV["HOME"]}/autossh_error.log</string>
     </dict>
     </plist>
     EOS
