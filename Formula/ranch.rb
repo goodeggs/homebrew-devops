@@ -92,8 +92,9 @@ echo 'dnsmasq configured!'
   def caveats
     <<~EOS
     - run "ranch-api-resolver-helper" to complete setup.
-    - Make sure "sslayer" is updated
+    - run 'brew upgrade sslayer'
     - You may need to "sudo brew services restart dnsmasq" to refresh config
+    - You may need to "brew services restart ranch" if you have a dial config error
     - Modify your ranch env vars to "export RANCH_ENDPOINT=https://ranch-api.internal.goodeggs.com:8005"
     EOS
   end
