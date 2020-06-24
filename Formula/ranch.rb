@@ -6,7 +6,6 @@ class Ranch < Formula
   sha256 "df82c0c1de0499cb5d9e50dcc7688fc6df4fe15ef7c4231d969942e2a48850b3"
 
   depends_on "autossh"
-  depends_on "dnsmasq"
   depends_on "netcat"
 
   def install
