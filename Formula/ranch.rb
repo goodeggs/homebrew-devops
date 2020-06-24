@@ -15,7 +15,7 @@ class Ranch < Formula
       file.write <<-EOS
 #!/bin/bash
 
-set -eo pipefail
+set -euo pipefail
 
 # Make sure and clean up
 trap "exit" INT TERM ERR
@@ -25,7 +25,7 @@ script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 sshcmd='ssh -o ExitOnForwardFailure=yes -l admin -N'
 export RANCH_SOCKS_PROXY='socks5://127.0.0.1:8015'
 
-case "$RANCH_ENDPOINT" in
+case "${RANCH_ENDPOINT:-}" in
   *huevosbuenos.com*)
     export RANCH_ENDPOINT="https://ranch-api-staging.internal.huevosbuenos.com"
     $sshcmd -D 8015 jump.us-east-1.dev-aws.goodeggs.com "sleep 3600" &
