@@ -7,6 +7,7 @@ class Ranch < Formula
 
   depends_on "autossh"
   depends_on "dnsmasq"
+  depends_on "netcat"
 
   def install
     bin.install "darwin-amd64" => "ranch_real"
@@ -14,27 +15,31 @@ class Ranch < Formula
       file.write <<-EOS
 #!/bin/bash
 
-set -eo pipefail
+set -euo pipefail
 
 # Make sure and clean up
 trap "exit" INT TERM ERR
 trap "kill 0" EXIT
 
+port="$(jot -r 1 2000 3000)"
+
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 sshcmd='ssh -o ExitOnForwardFailure=yes -l admin -N'
-export RANCH_SOCKS_PROXY='socks5://127.0.0.1:8015'
+export RANCH_SOCKS_PROXY="socks5://127.0.0.1:${port}"
 
-case "$RANCH_ENDPOINT" in
+case "${RANCH_ENDPOINT:-}" in
   *huevosbuenos.com*)
     export RANCH_ENDPOINT="https://ranch-api-staging.internal.huevosbuenos.com"
-    $sshcmd -D 8015 jump.us-east-1.dev-aws.goodeggs.com "sleep 3600" &
+    $sshcmd -D "${port}" jump.us-east-1.dev-aws.goodeggs.com "sleep 3600" &
     ;;
   *)
     export RANCH_ENDPOINT="https://ranch-api.internal.goodeggs.com"
-    $sshcmd -D 8015 jump.us-east-1.prod-aws.goodeggs.com "sleep 3600" &
+    $sshcmd -D "${port}" jump.us-east-1.prod-aws.goodeggs.com "sleep 3600" &
     ;;
   esac
-sleep 1
+while ! nc -z localhost "${port}"; do
+  sleep 0.1 # wait for 1/10 of the second before check again
+done
 $script_dir/ranch_real "$@"
     EOS
   end
