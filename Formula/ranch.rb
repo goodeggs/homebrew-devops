@@ -7,6 +7,7 @@ class Ranch < Formula
 
   depends_on "autossh"
   depends_on "dnsmasq"
+  depends_on "netcat"
 
   def install
     bin.install "darwin-amd64" => "ranch_real"
@@ -34,7 +35,9 @@ case "$RANCH_ENDPOINT" in
     $sshcmd -D 8015 jump.us-east-1.prod-aws.goodeggs.com "sleep 3600" &
     ;;
   esac
-sleep 1
+while ! nc -z localhost 8015; do
+  sleep 0.1 # wait for 1/10 of the second before check again
+done
 $script_dir/ranch_real "$@"
     EOS
   end
