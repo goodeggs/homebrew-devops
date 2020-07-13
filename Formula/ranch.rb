@@ -23,7 +23,7 @@ trap "kill 0" EXIT
 port="$(jot -r 1 2000 3000)"
 
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-sshcmd='ssh -o ExitOnForwardFailure=yes -l admin -N'
+sshcmd='ssh -o UserKnownHostsFile=/dev/null -o ExitOnForwardFailure=yes -o StrictHostKeyChecking=no -l admin -N'
 export RANCH_SOCKS_PROXY="socks5://127.0.0.1:${port}"
 
 case "${RANCH_ENDPOINT:-}" in
