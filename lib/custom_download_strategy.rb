@@ -1,6 +1,6 @@
-require "download_strategy"
+# from https://raw.githubusercontent.com/dollarshaveclub/homebrew-public/master/custom_download_strategy.rb
 
-# FROM: http://lessthanhero.io/post/homebrew-with-private-repo-releases/
+require "download_strategy"
 
 # GitHubPrivateRepositoryDownloadStrategy downloads contents from GitHub
 # Private Repository. To use it, add
@@ -10,7 +10,7 @@ require "download_strategy"
 # strategy is suitable for corporate use just like S3DownloadStrategy, because
 # it lets you use a private GitHub repository for internal distribution.  It
 # works with public one, but in that case simply use CurlDownloadStrategy.
-class GitHubPrivateRepositoryDownloadStrategy < CurlDownloadStrategy
+class CustomGitHubPrivateRepositoryDownloadStrategy < CurlDownloadStrategy
   require "utils/formatter"
   require "utils/github"
 
@@ -65,7 +65,7 @@ end
 # Release assets. To use it, add `:using => :github_private_release` to the URL section
 # of your formula. This download strategy uses GitHub access tokens (in the
 # environment variables HOMEBREW_GITHUB_API_TOKEN) to sign the request.
-class GitHubPrivateRepositoryReleaseDownloadStrategy < GitHubPrivateRepositoryDownloadStrategy
+class CustomGitHubPrivateRepositoryReleaseDownloadStrategy < CustomGitHubPrivateRepositoryDownloadStrategy
   require 'net/http'
 
   def initialize(url, name, version, **meta)
@@ -119,5 +119,104 @@ class GitHubPrivateRepositoryReleaseDownloadStrategy < GitHubPrivateRepositoryDo
   def fetch_release_metadata
     release_url = "https://api.github.com/repos/#{@owner}/#{@repo}/releases/tags/#{@tag}"
     GitHub.open_api(release_url)
+  end
+end
+
+# ScpDownloadStrategy downloads files using ssh via scp. To use it, add
+# `:using => :scp` to the URL section of your formula or
+# provide a URL starting with scp://. This strategy uses ssh credentials for
+# authentication. If a public/private keypair is configured, it will not
+# prompt for a password.
+#
+# @example
+#   class Abc < Formula
+#     url "scp://example.com/src/abc.1.0.tar.gz"
+#     ...
+class ScpDownloadStrategy < AbstractFileDownloadStrategy
+  def initialize(url, name, version, **meta)
+    odisabled("ScpDownloadStrategy",
+      "a vendored ScpDownloadStrategy in your own formula or tap (using require_relative)")
+    super
+    parse_url_pattern
+  end
+
+  def parse_url_pattern
+    url_pattern = %r{scp://([^@]+@)?([^@:/]+)(:\d+)?/(\S+)}
+    if @url !~ url_pattern
+      raise ScpDownloadStrategyError, "Invalid URL for scp: #{@url}"
+    end
+
+    _, @user, @host, @port, @path = *@url.match(url_pattern)
+  end
+
+  def fetch(timeout: nil)
+    ohai "Downloading #{@url}"
+
+    if cached_location.exist?
+      puts "Already downloaded: #{cached_location}"
+    else
+      system_command! "scp", args: [scp_source, temporary_path.to_s]
+      ignore_interrupts { temporary_path.rename(cached_location) }
+    end
+  end
+
+  def clear_cache
+    super
+    rm_rf(temporary_path)
+  end
+
+  private
+
+  def scp_source
+    path_prefix = "/" unless @path.start_with?("~")
+    port_arg = "-P #{@port[1..-1]} " if @port
+    "#{port_arg}#{@user}#{@host}:#{path_prefix}#{@path}"
+  end
+end
+
+class DownloadStrategyDetector
+  class << self
+    module Compat
+      def detect_from_url(url)
+        case url
+        when %r{^s3://}
+          odisabled("s3://",
+            "a vendored S3DownloadStrategy in your own formula or tap (using require_relative)")
+          S3DownloadStrategy
+        when %r{^scp://}
+          odisabled("scp://",
+            "a vendored ScpDownloadStrategy in your own formula or tap (using require_relative)")
+          ScpDownloadStrategy
+        else
+          super(url)
+        end
+      end
+
+      def detect_from_symbol(symbol)
+        case symbol
+        when :github_private_repo
+          odisabled(":github_private_repo",
+            "a vendored GitHubPrivateRepositoryDownloadStrategy in your own formula or tap (using require_relative)")
+          GitHubPrivateRepositoryDownloadStrategy
+        when :github_private_release
+          odisabled(":github_private_repo",
+            "a vendored GitHubPrivateRepositoryReleaseDownloadStrategy in your own formula or tap "\
+            "(using require_relative)")
+          GitHubPrivateRepositoryReleaseDownloadStrategy
+        when :s3
+          odisabled(":s3",
+            "a vendored S3DownloadStrategy in your own formula or tap (using require_relative)")
+          S3DownloadStrategy
+        when :scp
+          odisabled(":scp",
+            "a vendored ScpDownloadStrategy in your own formula or tap (using require_relative)")
+          ScpDownloadStrategy
+        else
+          super(symbol)
+        end
+      end
+    end
+
+    prepend Compat
   end
 end
