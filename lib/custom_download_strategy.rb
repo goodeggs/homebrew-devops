@@ -4,7 +4,7 @@ require "download_strategy"
 
 # GitHubPrivateRepositoryDownloadStrategy downloads contents from GitHub
 # Private Repository. To use it, add
-# `:using => :github_private_repo` to the URL section of
+# `:using => CustomGitHubPrivateRepositoryDownloadStrategy` to the URL section of
 # your formula. This download strategy uses GitHub access tokens (in the
 # environment variables `HOMEBREW_GITHUB_API_TOKEN`) to sign the request.  This
 # strategy is suitable for corporate use just like S3DownloadStrategy, because
@@ -62,7 +62,7 @@ class CustomGitHubPrivateRepositoryDownloadStrategy < CurlDownloadStrategy
 end
 
 # GitHubPrivateRepositoryReleaseDownloadStrategy downloads tarballs from GitHub
-# Release assets. To use it, add `:using => :github_private_release` to the URL section
+# Release assets. To use it, add `:using => CustomGitHubPrivateRepositoryReleaseDownloadStrategy` to the URL section
 # of your formula. This download strategy uses GitHub access tokens (in the
 # environment variables HOMEBREW_GITHUB_API_TOKEN) to sign the request.
 class CustomGitHubPrivateRepositoryReleaseDownloadStrategy < CustomGitHubPrivateRepositoryDownloadStrategy
@@ -123,7 +123,7 @@ class CustomGitHubPrivateRepositoryReleaseDownloadStrategy < CustomGitHubPrivate
 end
 
 # ScpDownloadStrategy downloads files using ssh via scp. To use it, add
-# `:using => :scp` to the URL section of your formula or
+# `:using => ScpDownloadStrategy` to the URL section of your formula or
 # provide a URL starting with scp://. This strategy uses ssh credentials for
 # authentication. If a public/private keypair is configured, it will not
 # prompt for a password.
