@@ -5,7 +5,7 @@ class Sslayer < Formula
   version '2.2.2'
 
   depends_on 'dnsmasq'
-  depends_on 'docker'
+  depends_on cask: 'docker'
 
   def install
     bin.install 'sslayer'
