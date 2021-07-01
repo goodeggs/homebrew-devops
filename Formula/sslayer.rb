@@ -2,10 +2,12 @@ class Sslayer < Formula
   desc 'SSL-terminating reverse proxy for the Good Eggs ecosystem'
   homepage 'https://github.com/goodeggs/homebrew-delivery-eng'
   url 'https://github.com/goodeggs/homebrew-delivery-eng.git'
-  version '2.2.2'
+  version '2.2.3'
 
   depends_on 'dnsmasq'
-  depends_on cask: 'docker'
+  # we want to depend on the cask, but you can't from formula; depending on the formula is broken
+  # because of conflicts with the cask. ???
+  #depends_on 'docker'
 
   def install
     bin.install 'sslayer'
