@@ -34,7 +34,7 @@ class CustomGitHubPrivateRepositoryDownloadStrategy < CurlDownloadStrategy
 
   private
 
-  def _fetch(url:, resolved_url:)
+  def _fetch
     curl_download download_url, "--header", "Authorization: token #{@github_token}", to: temporary_path
   end
 
@@ -98,7 +98,7 @@ class CustomGitHubPrivateRepositoryReleaseDownloadStrategy < CustomGitHubPrivate
 
   private
 
-  def _fetch(url:, resolved_url:)
+  def _fetch
     # HTTP request header `Accept: application/octet-stream` is required.
     # Without this, the GitHub API will respond with metadata, not binary.
     curl_download download_url, "--header", "Accept: application/octet-stream", to: temporary_path
@@ -149,7 +149,7 @@ class ScpDownloadStrategy < AbstractFileDownloadStrategy
     _, @user, @host, @port, @path = *@url.match(url_pattern)
   end
 
-  def fetch()
+  def fetch
     ohai "Downloading #{@url}"
 
     if cached_location.exist?
