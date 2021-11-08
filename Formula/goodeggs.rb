@@ -3,9 +3,9 @@ require_relative "../lib/custom_download_strategy.rb"
 class Goodeggs < Formula
   desc "Good Eggs CLI"
   homepage "https://github.com/goodeggs/goodeggs-cli"
-  version "2.0.0"
+  version "2.0.1"
   url "https://github.com/goodeggs/goodeggs-cli/releases/download/v#{version}/goodeggs-Darwin-x86_64", :using => CustomGitHubPrivateRepositoryReleaseDownloadStrategy
-  sha256 "9ac680ac8ddd08475c1df696fd74ec4c502f140d3a7c6c988f4a50958e586615"
+  sha256 "d1e308adcea947b494522dd7c2985c76e7c9c3feba387146aeeb3e950fc97a51"
 
   def install
     bin.install "goodeggs-Darwin-x86_64" => "goodeggs"
