@@ -7,8 +7,6 @@ class ChromedriverService < Formula
 
   #depends_on :chromedriver
 
-  bottle :unneeded
-
   def install
     prefix.install 'empty'
   end
