@@ -21,13 +21,14 @@ mark_last_setup() {
 }
 
 configure_dnsmasq() {
-  mkdir -p /usr/local/etc
-  mkdir -p /usr/local/etc/dnsmasq.d/
-  cat << EOF > /usr/local/etc/dnsmasq.conf
-conf-dir=/usr/local/etc/dnsmasq.d/,*.conf
+  brew_prefix=$(brew --prefix)
+  mkdir -p "$brew_prefix/etc"
+  mkdir -p "$brew_prefix/etc/dnsmasq.d/"
+  cat << EOF > "$brew_prefix/etc/dnsmasq.conf"
+conf-dir=$brew_prefix/etc/dnsmasq.d/,*.conf
 EOF
 
-  cat << EOF > /usr/local/etc/dnsmasq.d/goodeggs-dev.conf
+  cat << EOF > "$brew_prefix/etc/dnsmasq.d/goodeggs-dev.conf"
 address=/goodeggs.dev/127.0.0.1
 address=/goodeggs.test/127.0.0.1
 EOF
