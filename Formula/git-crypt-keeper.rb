@@ -3,7 +3,7 @@ require 'formula'
 class GitCryptKeeper < Formula
   homepage 'https://github.com/goodeggs/homebrew-devops/'
   url 'https://github.com/goodeggs/homebrew-devops.git'
-  version '2.5.1' # keep in sync with https://github.com/goodeggs/platform-docker-base
+  version '2.6.1' # keep in sync with https://github.com/goodeggs/platform-docker-base
 
   depends_on "docker"
 
