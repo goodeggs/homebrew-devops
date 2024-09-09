@@ -11,32 +11,11 @@ class ChromedriverService < Formula
     prefix.install 'empty'
   end
 
-  plist_options :manual => "chromedriver"
-
-  def plist; <<~EOS
-    <?xml version="1.0" encoding="UTF-8"?>
-    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-    <plist version="1.0">
-    <dict>
-      <key>Label</key>
-      <string>homebrew.mxcl.chromedriver-service</string>
-      <key>RunAtLoad</key>
-      <true/>
-      <key>KeepAlive</key>
-      <false/>
-      <key>ProgramArguments</key>
-      <array>
-        <string>/usr/local/bin/chromedriver</string>
-      </array>
-      <key>ServiceDescription</key>
-      <string>Chrome Driver</string>
-      <key>StandardErrorPath</key>
-      <string>#{var}/log/chromedriver-error.log</string>
-      <key>StandardOutPath</key>
-      <string>#{var}/log/chromedriver-output.log</string>
-    </dict>
-    </plist>
-    EOS
+  service do
+    run ["/usr/local/bin/chromedriver"]
+    keep_alive false
+    working_dir HOMEBREW_PREFIX
+    log_path var/"log/chromedriver-output.log"
+    error_log_path var/"log/chromedriver-error.log"
   end
-
 end
