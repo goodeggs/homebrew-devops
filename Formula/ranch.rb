@@ -3,7 +3,7 @@ class Ranch < Formula
   homepage "https://github.com/goodeggs/ranch-cli"
   version "10.9.0"
   url "http://ranch-updates.goodeggs.com/stable/ranch/#{version}/darwin-amd64.gz"
-  sha256 "8aa5e9a4966aafb1088b695f66835f80341b59c2d13f51f3bcc0e27c27c573ba"
+  sha256 "7ae6aadc0914f832168252d7febf949ad1f0115e21672b2d71b1737fadeff7a4"
 
   depends_on "autossh"
   depends_on "netcat"
