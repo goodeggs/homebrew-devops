@@ -1,9 +1,9 @@
 class Ranch < Formula
   desc "Ranch Platform CLI"
   homepage "https://github.com/goodeggs/ranch-cli"
-  version "10.12.0"
+  version "10.13.0"
   url "http://ranch-updates.goodeggs.com/stable/ranch/#{version}/darwin-amd64.gz"
-  sha256 "7ce95f681f3f261d76b3ec33dd1c31f8c95d646b33e8dd48c116fad801d63b63"
+  sha256 "da69cd4eab1d754166030f22c3dd710e9db4910866022cc312aac6c3b49f5dc9"
 
   depends_on "autossh"
   depends_on "netcat"
