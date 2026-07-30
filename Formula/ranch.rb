@@ -10,7 +10,7 @@ class Ranch < Formula
 
   def install
     bin.install "darwin-amd64" => "ranch_real"
-    curl_download "http://ranch-updates.goodeggs.com/stable/ranch/#{version}/ranch-wrapper.sh", to: "ranch-wrapper.sh"
+    system "curl", "-o", "ranch-wrapper.sh", "http://ranch-updates.goodeggs.com/stable/ranch/#{version}/ranch-wrapper.sh"
     bin.install "ranch-wrapper.sh" => "ranch"
   end
 
